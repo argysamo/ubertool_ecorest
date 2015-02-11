@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 class kabam(object):
-    def __init__(self, chemical_name, l_kow, k_oc, c_wdp, water_column_EEC, c_wto, mineau_scaling_factor, x_poc, x_doc, c_ox, w_t, c_ss, oc, k_ow, Species_of_the_tested_bird, bw_quail, bw_duck, bwb_other, avian_ld50, avian_lc50, avian_noaec, m_species, bw_rat, bwm_other, mammalian_ld50, mammalian_lc50, mammalian_chronic_endpoint, lf_p_sediment, lf_p_phytoplankton, lf_p_zooplankton, lf_p_benthic_invertebrates, lf_p_filter_feeders, lf_p_small_fish, lf_p_medium_fish, mf_p_sediment, mf_p_phytoplankton, mf_p_zooplankton, mf_p_benthic_invertebrates, mf_p_filter_feeders, mf_p_small_fish, sf_p_sediment, sf_p_phytoplankton, sf_p_zooplankton, sf_p_benthic_invertebrates, sf_p_filter_feeders, ff_p_sediment, ff_p_phytoplankton, ff_p_zooplankton, ff_p_benthic_invertebrates, beninv_p_sediment, beninv_p_phytoplankton, beninv_p_zooplankton, zoo_p_sediment, zoo_p_phyto, s_lipid, s_NLOM, s_water, v_lb_phytoplankton, v_nb_phytoplankton, v_wb_phytoplankton, wb_zoo, v_lb_zoo, v_nb_zoo, v_wb_zoo, wb_beninv, v_lb_beninv, v_nb_beninv, v_wb_beninv, wb_ff, v_lb_ff, v_nb_ff, v_wb_ff, wb_sf, v_lb_sf, v_nb_sf, v_wb_sf, wb_mf, v_lb_mf, v_nb_mf, v_wb_mf, wb_lf, v_lb_lf, v_nb_lf, v_wb_lf, kg_phytoplankton, kd_phytoplankton, ke_phytoplankton, mo_phytoplankton, mp_phytoplankton, km_phytoplankton, km_zoo, k1_phytoplankton, k2_phytoplankton, k1_zoo, k2_zoo, kd_zoo, ke_zoo, k1_beninv, k2_beninv, kd_beninv, ke_beninv, km_beninv, k1_ff, k2_ff, kd_ff, ke_ff, km_ff, k1_sf, k2_sf, kd_sf, ke_sf, km_sf, k1_mf, k2_mf, kd_mf, ke_mf, km_mf, k1_lf, k2_lf, kd_lf, ke_lf, km_lf, rate_constants, s_respire, phyto_respire, zoo_respire, beninv_respire, ff_respire, sfish_respire, mfish_respire, lfish_respire):
+    def __init__(self, run_type, pd_obj, pd_obj_exp):
         self.chemical_name = chemical_name
         self.l_kow=l_kow
         self.k_oc=k_oc
@@ -308,6 +308,9 @@ class kabam(object):
             self.ke_lf = ke_lf
             self.km_lf = km_lf
         self.run_methods()
+
+        # Callable from Bottle that returns JSON
+        self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
     def run_methods(self):
         self.phi_f()

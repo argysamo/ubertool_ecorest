@@ -1,11 +1,7 @@
 import numpy as np
 
 class therps(object):
-    def __init__(self, chem_name, use, formu_name, a_i, h_l, n_a, i_a, a_r, avian_ld50, avian_lc50, avian_NOAEC, avian_NOAEL, 
-                 Species_of_the_tested_bird_avian_ld50, Species_of_the_tested_bird_avian_lc50, Species_of_the_tested_bird_avian_NOAEC, Species_of_the_tested_bird_avian_NOAEL,
-                 bw_avian_ld50, bw_avian_lc50, bw_avian_NOAEC, bw_avian_NOAEL,
-                 mineau_scaling_factor, bw_herp_a_sm, bw_herp_a_md, bw_herp_a_lg, wp_herp_a_sm, wp_herp_a_md, 
-                 wp_herp_a_lg, c_mamm_a, c_herp_a):
+    def __init__(self, run_type, pd_obj, pd_obj_exp):
         self.chem_name = chem_name
         self.use = use
         self.formu_name = formu_name
@@ -151,6 +147,8 @@ class therps(object):
         self.EEC_diet_herp_TP_mean=self.EEC_diet_tp(self.EEC_diet, self.C_0, self.C_t, n_a, i_a, a_r, a_i, 45, h_l, self.fi_herp, c_herp_a, wp_herp_a_sm)
         self.EEC_CRQ_herp_TP_mean=self.CRQ_diet_tp(self.EEC_diet_tp, self.EEC_diet, avian_NOAEC, self.C_0, self.C_t, n_a, i_a, a_r, a_i, 45, h_l, self.fi_herp, c_herp_a, wp_herp_a_sm)
 
+        # Callable from Bottle that returns JSON
+        self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
     def fi_herp(self, aw_herp, mf_w_herp):
         try:

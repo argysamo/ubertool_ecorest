@@ -1,7 +1,7 @@
 import math
 
 class iec(object):
-    def __init__(self, dose_response, LC50, threshold):
+    def __init__(self, run_type, pd_obj, pd_obj_exp):
         self.dose_response = dose_response
         self.LC50 = LC50
         self.threshold = threshold
@@ -12,6 +12,8 @@ class iec(object):
         self.chance_f_out = -1
         self.run_methods()
 
+        # Callable from Bottle that returns JSON
+        self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
     def run_methods(self):
         try:

@@ -1,6 +1,6 @@
 
 class rice(object):
-    def __init__(self, chemical_name, mai, dsed, a, pb, dw, osed, kd):
+    def __init__(self, run_type, pd_obj, pd_obj_exp):
         self.chemical_name = chemical_name
         self.mai = mai
         self.dsed = dsed
@@ -15,6 +15,9 @@ class rice(object):
         self.mai1 = -1
         self.cw = -1
         self.run_methods()
+
+        # Callable from Bottle that returns JSON
+        self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
     def run_methods(self):
         self.Calcmsed()

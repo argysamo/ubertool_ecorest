@@ -1,6 +1,6 @@
 
 class earthworm(object):
-    def __init__(self, k_ow, l_f_e, c_s, k_d, p_s, c_w, m_w, p_e):
+    def __init__(self, run_type, pd_obj, pd_obj_exp):
         self.k_ow = k_ow
         self.l_f_e = l_f_e
         self.c_s = c_s
@@ -13,6 +13,9 @@ class earthworm(object):
         #Result variables
         self.earthworm_fugacity_out = -1
         self.run_methods()
+
+        # Callable from Bottle that returns JSON
+        self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
     def run_methods(self):
         self.earthworm_fugacity()

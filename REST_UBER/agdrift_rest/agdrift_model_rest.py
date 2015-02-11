@@ -1,9 +1,7 @@
 import numpy as np
 
 class agdrift(object):
-    def __init__(self, drop_size, ecosystem_type, application_method, boom_height, orchard_type, 
-                 application_rate, distance, aquatic_type, calculation_input, init_avg_dep_foa, 
-                 avg_depo_lbac, avg_depo_gha, deposition_ngL, deposition_mgcm, nasae, y, x, express_y):
+    def __init__(self, run_type, pd_obj, pd_obj_exp):
         self.drop_size = drop_size
         self.ecosystem_type = ecosystem_type 
         self.application_method = application_method
@@ -22,6 +20,9 @@ class agdrift(object):
         self.y = y
         self.x = x
         self.express_y = express_y
+
+        # Callable from Bottle that returns JSON
+        self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
     def run_methods(self):
         self.results()
