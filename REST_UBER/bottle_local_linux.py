@@ -86,6 +86,8 @@ def model_caller(model, jid):
     """
         Method to call the model Python modules
     """
+
+    logging.info("====== back end model_caller: start")
     try:
         import importlib
         # Dynamically import the model Python module
@@ -99,30 +101,31 @@ def model_caller(model, jid):
         try:
             run_type = request.json["run_type"]
         except KeyError, e:
+            logging.info("====== error run_type = " + run_type)
             return errorMessage(e, jid)
 
         if run_type == "qaqc":
-            logging.info('============= QAQC Run =============')
+            logging.info('====== back end model_caller: qaqc')
             pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
             logging.info(pd_obj)
             pd_obj_exp = pd.io.json.read_json(json.dumps(request.json["out_exp"]))
             logging.info(pd_obj_exp)
-            logging.info(run_type)
             result_json_tuple = model_object(run_type, pd_obj, pd_obj_exp).json
 
         elif run_type == "batch":
-            logging.info('============= Batch Run =============')
+            logging.info('====== back end model_caller: batch')
             pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
-
+            logging.info(pd_obj)
             result_json_tuple = model_object(run_type, pd_obj, None).json
 
         else:
-            logging.info('============= Single Run =============')
+            logging.info('====== back end model_caller: single')
             pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
-
+            logging.info("input dump = " + str(pd_obj))
             result_json_tuple = model_object(run_type, pd_obj, None).json
 
         # Values returned from model run: inputs, outputs, and expected outputs (if QAQC run)
+        logging.info("====== back end model_call: back from call")
         inputs_json = json.loads(result_json_tuple[0])
         outputs_json = json.loads(result_json_tuple[1])
         exp_out_json = json.loads(result_json_tuple[2])

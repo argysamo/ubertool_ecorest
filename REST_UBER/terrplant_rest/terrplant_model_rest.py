@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
-class terrplant(object):
 
+class terrplant(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
 
         # logging.info(pd_obj)
