@@ -1,21 +1,49 @@
+# -*- coding: utf-8 -*-
+
+import pandas as pd
+import numpy as np
+import logging
+
 
 class earthworm(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
-        self.k_ow = k_ow
-        self.l_f_e = l_f_e
-        self.c_s = c_s
-        self.k_d = k_d
-        self.p_s = p_s
-        self.c_w = c_w
-        self.m_w = m_w
-        self.p_e = p_e
+        # run_type can be single, batch or qaqc
+        self.run_type = run_type
 
-        #Result variables
-        self.earthworm_fugacity_out = -1
+        # Inputs: Assign object attribute variables from the input Pandas DataFrame
+        self.k_ow = pd_obj['k_ow']
+        self.l_f_e = pd_obj['l_f_e']
+        self.c_s = pd_obj['c_s']
+        self.k_d = pd_obj['k_d']
+        self.p_s = pd_obj['p_s']
+        self.c_w = pd_obj['c_w']
+        self.m_w = pd_obj['m_w']
+        self.p_e = pd_obj['p_e']
+
+        # Create DataFrame containing output value Series
+        pd_obj_out = pd.DataFrame({
+            self.earthworm_fugacity_out = -1
+        })
+
         self.run_methods()
 
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
+
+    def json(self, pd_obj, pd_obj_out, pd_obj_exp):
+        """
+            Convert DataFrames to JSON, returning a tuple 
+            of JSON strings (inputs, outputs, exp_out)
+        """
+        
+        pd_obj_json = pd_obj.to_json()
+        pd_obj_out_json = pd_obj_out.to_json()
+        try:
+            pd_obj_exp_json = pd_obj_exp.to_json()
+        except:
+            pd_obj_exp_json = "{}"
+        
+        return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
 
     def run_methods(self):
         self.earthworm_fugacity()

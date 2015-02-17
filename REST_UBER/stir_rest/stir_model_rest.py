@@ -7,6 +7,7 @@ class stir(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
 
         # Inputs: Assign object attribute variables from the input Pandas DataFrame
+        logging.info(pd_obj)
         self.run_type = run_type
         self.chemical_name = pd_obj["chemical_name"]
         self.application_rate = pd_obj["application_rate"]

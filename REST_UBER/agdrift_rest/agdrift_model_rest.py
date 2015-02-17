@@ -1,28 +1,58 @@
+# -*- coding: utf-8 -*-
+
+import pandas as pd
 import numpy as np
+import logging
 
 class agdrift(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
-        self.drop_size = drop_size
-        self.ecosystem_type = ecosystem_type 
-        self.application_method = application_method
-        self.boom_height = boom_height
-        self.orchard_type = orchard_type
-        self.application_rate = application_rate
-        self.distance = distance
-        self.aquatic_type = aquatic_type
-        self.calculation_input = calculation_input
-        self.init_avg_dep_foa = init_avg_dep_foa
-        self.avg_depo_lbac = avg_depo_lbac
-        self.avg_depo_gha  = avg_depo_gha
-        self.deposition_ngL = deposition_ngL
-        self.deposition_mgcm = deposition_mgcm
-        self.nasae = nasae
-        self.y = y
-        self.x = x
-        self.express_y = express_y
+        # run_type can be single, batch or qaqc
+        self.run_type = run_type
+
+        #Inputs: Assign object attribute variables from the input Pandas DataFrame
+        self.drop_size = pd_obj['drop_size']
+        self.ecosystem_type = pd_obj['ecosystem_type ']
+        self.application_method = pd_obj['application_method']
+        self.boom_height = pd_obj['boom_height']
+        self.orchard_type = pd_obj['orchard_type']
+        self.application_rate = pd_obj['application_rate']
+        self.distance = pd_obj['distance']
+        self.aquatic_type = pd_obj['aquatic_type']
+        self.calculation_input = pd_obj['calculation_input']
+
+        # Execute model methods
+        self.run_methods()
+        
+        # Create DataFrame containing output value Series
+        pd_obj_out = pd.DataFrame({
+            self.init_avg_dep_foa init_avg_dep_foa
+            self.avg_depo_lbac avg_depo_lbac
+            self.avg_depo_gha  avg_depo_gha
+            self.deposition_ngL deposition_ngL
+            self.deposition_mgcm deposition_mgcm
+            self.nasae nasae
+            self.y y
+            self.x x
+            self.express_y express_y
+        })
 
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
+
+    def json(self, pd_obj, pd_obj_out, pd_obj_exp):
+        """
+            Convert DataFrames to JSON, returning a tuple 
+            of JSON strings (inputs, outputs, exp_out)
+        """
+        
+        pd_obj_json = pd_obj.to_json()
+        pd_obj_out_json = pd_obj_out.to_json()
+        try:
+            pd_obj_exp_json = pd_obj_exp.to_json()
+        except:
+            pd_obj_exp_json = "{}"
+        
+        return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
 
     def run_methods(self):
         self.results()

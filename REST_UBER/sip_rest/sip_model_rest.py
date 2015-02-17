@@ -2,11 +2,13 @@
 
 import pandas as pd
 import logging
+
 class sip(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
+        # run_type can be single, batch or qaqc
+        self.run_type = run_type
 
         # Inputs: Assign object attribute variables from the input Pandas DataFrame
-        self.run_type = run_type
         self.chemical_name = pd_obj['chemical_name']
         self.solubility = pd_obj['solubility']
         # try:
@@ -30,28 +32,26 @@ class sip(object):
 
 
         # Outputs: Assign object attribute variables to Pandas Series
-        self.fw_bird_out = pd.Series(name="fw_bird_out")
-        self.fw_mamm_out = pd.Series(name="fw_mamm_out")
-        self.dose_bird_out = pd.Series(name="dose_bird_out")
-        self.dose_mamm_out = pd.Series(name="dose_mamm_out")
-        self.at_bird_out = pd.Series(name="at_bird_out")
-        self.at_mamm_out = pd.Series(name="at_mamm_out")
-        self.fi_bird_out = pd.Series(name="fi_bird_out")
-        self.det_out = pd.Series(name="det_out")
-        self.act_out = pd.Series(name="act_out")
-        self.acute_bird_out = pd.Series(name="acute_bird_out")
-        self.acuconb_out = pd.Series(name="acuconb_out")
-        self.acute_mamm_out = pd.Series(name="acute_mamm_out")
-        self.acuconm_out = pd.Series(name="acuconm_out")
-        self.chron_bird_out = pd.Series(name="chron_bird_out")
-        self.chronconb_out = pd.Series(name="chronconb_out")
-        self.chron_mamm_out = pd.Series(name="chron_mamm_out")
-        self.chronconm_out = pd.Series(name="chronconm_out")
-
+        self.fw_bird_out = pd.Series(name = "fw_bird_out")
+        self.fw_mamm_out = pd.Series(name = "fw_mamm_out")
+        self.dose_bird_out = pd.Series(name = "dose_bird_out")
+        self.dose_mamm_out = pd.Series(name = "dose_mamm_out")
+        self.at_bird_out = pd.Series(name = "at_bird_out")
+        self.at_mamm_out = pd.Series(name = "at_mamm_out")
+        self.fi_bird_out = pd.Series(name = "fi_bird_out")
+        self.det_out = pd.Series(name = "det_out")
+        self.act_out = pd.Series(name = "act_out")
+        self.acute_bird_out = pd.Series(name = "acute_bird_out")
+        self.acuconb_out = pd.Series(name = "acuconb_out")
+        self.acute_mamm_out = pd.Series(name = "acute_mamm_out")
+        self.acuconm_out = pd.Series(name = "acuconm_out")
+        self.chron_bird_out = pd.Series(name = "chron_bird_out")
+        self.chronconb_out = pd.Series(name = "chronconb_out")
+        self.chron_mamm_out = pd.Series(name = "chron_mamm_out")
+        self.chronconm_out = pd.Series(name = "chronconm_out")
 
         # Execute model methods
         self.run_methods()
-
 
         # Create DataFrame containing output value Series
         pd_obj_out = pd.DataFrame({

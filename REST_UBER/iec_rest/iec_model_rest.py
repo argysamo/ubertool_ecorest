@@ -1,19 +1,47 @@
+# -*- coding: utf-8 -*-
+
+import pandas as pd
+import numpy as np
 import math
+import logging
 
 class iec(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
-        self.dose_response = dose_response
-        self.LC50 = LC50
-        self.threshold = threshold
+        # run_type can be single, batch or qaqc
+        self.run_type = run_type
 
-        #Result variables
-        self.z_score_f_out = -1
-        self.F8_f_out = -1
-        self.chance_f_out = -1
+        #Inputs: Assign object attribute variables from the input Pandas DataFrame
+        self.dose_response = pd_obj['dose_response']
+        self.LC50 = pd_obj['LC50']
+        self.threshold = pd_obj['threshold']
+
+        # Execute model methods
         self.run_methods()
+
+        # Create DataFrame containing output value Series
+        pd_obj_out = pd.DataFrame({
+            self.z_score_f_out = -1
+            self.F8_f_out = -1
+            self.chance_f_out = -1
+        })
 
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
+
+    def json(self, pd_obj, pd_obj_out, pd_obj_exp):
+        """
+            Convert DataFrames to JSON, returning a tuple 
+            of JSON strings (inputs, outputs, exp_out)
+        """
+        
+        pd_obj_json = pd_obj.to_json()
+        pd_obj_out_json = pd_obj_out.to_json()
+        try:
+            pd_obj_exp_json = pd_obj_exp.to_json()
+        except:
+            pd_obj_exp_json = "{}"
+        
+        return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
 
     def run_methods(self):
         try:

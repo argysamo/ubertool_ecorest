@@ -1,316 +1,342 @@
-import math
+# -*- coding: utf-8 -*-
+
+import pandas as pd
 import numpy as np
+import math
+import logging
 
 class kabam(object):
     def __init__(self, run_type, pd_obj, pd_obj_exp):
-        self.chemical_name = chemical_name
-        self.l_kow=l_kow
-        self.k_oc=k_oc
-        self.c_wdp=c_wdp
-        self.water_column_EEC=water_column_EEC
-        self.c_wto=c_wto
-        self.mineau_scaling_factor=mineau_scaling_factor
-        self.x_poc=x_poc
-        self.x_doc=x_doc
-        self.c_ox=c_ox
-        self.w_t=w_t
-        self.c_ss=c_ss
-        self.oc=oc
-        self.k_ow=k_ow
-        self.Species_of_the_tested_bird = Species_of_the_tested_bird
-        self.bw_quail = bw_quail
-        self.bw_duck = bw_duck
-        self.bwb_other = bwb_other
+        # run_type can be single, batch or qaqc
+        self.run_type = run_type
+
+        # Inputs: Assign object attribute variables from the input Pandas DataFrame
+        self.chemical_name = pd_obj['chemical_name']
+        self.l_kow = pd_obj['l_kow']
+        self.k_oc = pd_obj['k_oc']
+        self.c_wdp = pd_obj['c_wdp']
+        self.water_column_EEC = pd_obj['water_column_EEC']
+        self.c_wto = pd_obj['c_wto']
+        self.mineau_scaling_factor = pd_obj['mineau_scaling_factor']
+        self.x_poc = pd_obj['x_poc']
+        self.x_doc = pd_obj['x_doc']
+        self.c_ox = pd_obj['c_ox']
+        self.w_t = pd_obj['w_t']
+        self.c_ss = pd_obj['c_ss']
+        self.oc = pd_obj['oc']
+        self.k_ow = pd_obj['k_ow']
+        self.Species_of_the_tested_bird = pd_obj['Species_of_the_tested_bird']
+        self.bw_quail = pd_obj['bw_quail']
+        self.bw_duck = pd_obj['bw_duck']
+        self.bwb_other = pd_obj['bwb_other']
         if Species_of_the_tested_bird =='178':
-            self.bw_bird = self.bw_quail
+            self.bw_bird = pd_obj['self.bw_quail']
         elif Species_of_the_tested_bird =='1580':
-            self.bw_bird = self.bw_duck
+            self.bw_bird = pd_obj['self.bw_duck']
         else:
-            self.bw_bird = self.bwb_other           
-        self.avian_ld50=avian_ld50
-        self.avian_lc50=avian_lc50
-        self.avian_noaec=avian_noaec
-        self.m_species = m_species
-        self.bw_rat = bw_rat
-        self.bwm_other = bwm_other
+            self.bw_bird = pd_obj['self.bwb_other           ']
+        self.avian_ld50 = pd_obj['avian_ld50']
+        self.avian_lc50 = pd_obj['avian_lc50']
+        self.avian_noaec = pd_obj['avian_noaec']
+        self.m_species = pd_obj['m_species']
+        self.bw_rat = pd_obj['bw_rat']
+        self.bwm_other = pd_obj['bwm_other']
         if m_species =='350':
-            self.bw_mamm = self.bw_rat
+            self.bw_mamm = pd_obj['self.bw_rat']
         else:
-            self.bw_mamm = self.bwm_other
-        self.mammalian_ld50=mammalian_ld50
-        self.mammalian_lc50=mammalian_lc50
-        self.mammalian_chronic_endpoint=mammalian_chronic_endpoint
-        self.lf_p_sediment=lf_p_sediment
-        self.lf_p_phytoplankton=lf_p_phytoplankton
-        self.lf_p_zooplankton=lf_p_zooplankton
-        self.lf_p_benthic_invertebrates=lf_p_benthic_invertebrates
-        self.lf_p_filter_feeders=lf_p_filter_feeders
-        self.lf_p_small_fish=lf_p_small_fish
-        self.lf_p_medium_fish=lf_p_medium_fish
-        self.mf_p_sediment=mf_p_sediment
-        self.mf_p_phytoplankton=mf_p_phytoplankton
-        self.mf_p_zooplankton=mf_p_zooplankton
-        self.mf_p_benthic_invertebrates=mf_p_benthic_invertebrates
-        self.mf_p_filter_feeders=mf_p_filter_feeders
-        self.mf_p_small_fish=mf_p_small_fish
-        self.sf_p_sediment=sf_p_sediment
-        self.sf_p_phytoplankton=sf_p_phytoplankton
-        self.sf_p_zooplankton=sf_p_zooplankton
-        self.sf_p_benthic_invertebrates=sf_p_benthic_invertebrates
-        self.sf_p_filter_feeders=sf_p_filter_feeders
-        self.ff_p_sediment=ff_p_sediment
-        self.ff_p_phytoplankton=ff_p_phytoplankton
-        self.ff_p_zooplankton=ff_p_zooplankton
-        self.ff_p_benthic_invertebrates=ff_p_benthic_invertebrates
-        self.beninv_p_sediment=beninv_p_sediment
-        self.beninv_p_phytoplankton=beninv_p_phytoplankton
-        self.beninv_p_zooplankton=beninv_p_zooplankton
-        self.zoo_p_sediment=zoo_p_sediment
-        self.zoo_p_phyto=zoo_p_phyto
-        self.s_lipid=s_lipid
-        self.s_NLOM=s_NLOM
-        self.s_water=s_water
-        self.v_lb_phytoplankton=v_lb_phytoplankton
-        self.v_nb_phytoplankton=v_nb_phytoplankton
-        self.v_wb_phytoplankton=v_wb_phytoplankton
-        self.wb_zoo=wb_zoo
-        self.v_lb_zoo=v_lb_zoo
-        self.v_nb_zoo=v_nb_zoo
-        self.v_wb_zoo=v_wb_zoo
-        self.wb_beninv=wb_beninv
-        self.v_lb_beninv=v_lb_beninv
-        self.v_nb_beninv=v_nb_beninv
-        self.v_wb_beninv=v_wb_beninv
-        self.wb_ff=wb_ff
-        self.v_lb_ff=v_lb_ff
-        self.v_nb_ff=v_nb_ff
-        self.v_wb_ff=v_wb_ff
-        self.wb_sf=wb_sf
-        self.v_lb_sf=v_lb_sf
-        self.v_nb_sf=v_nb_sf
-        self.v_wb_sf=v_wb_sf
-        self.wb_mf=wb_mf
-        self.v_lb_mf=v_lb_mf
-        self.v_nb_mf=v_nb_mf
-        self.v_wb_mf=v_wb_mf
-        self.wb_lf=wb_lf
-        self.v_lb_lf=v_lb_lf
-        self.v_nb_lf=v_nb_lf
-        self.v_wb_lf=v_wb_lf
-        self.kg_phytoplankton=kg_phytoplankton
-        self.kd_phytoplankton=kd_phytoplankton
-        self.ke_phytoplankton=ke_phytoplankton
-        self.mo_phytoplankton=mo_phytoplankton
-        self.mp_phytoplankton=mp_phytoplankton
-        self.km_phytoplankton=km_phytoplankton
-        self.km_zoo=km_zoo
-        self.k1_phytoplankton=k1_phytoplankton
-        self.k2_phytoplankton=k2_phytoplankton
-        self.k1_zoo=k1_zoo
-        self.k2_zoo=k2_zoo
-        self.kd_zoo=kd_zoo
-        self.ke_zoo=ke_zoo
-        self.k1_beninv=k1_beninv
-        self.k2_beninv=k2_beninv
-        self.kd_beninv=kd_beninv
-        self.ke_beninv=ke_beninv
-        self.km_beninv=km_beninv
-        self.k1_ff=k1_ff
-        self.k2_ff=k2_ff
-        self.kd_ff=kd_ff
-        self.ke_ff=ke_ff
-        self.km_ff=km_ff
-        self.k1_sf=k1_sf
-        self.k2_sf=k2_sf
-        self.kd_sf=kd_sf
-        self.ke_sf=ke_sf
-        self.km_sf=km_sf
-        self.k1_mf=k1_mf
-        self.k2_mf=k2_mf
-        self.kd_mf=kd_mf
-        self.ke_mf=ke_mf
-        self.km_mf=km_mf
-        self.k1_lf=k1_lf
-        self.k2_lf=k2_lf
-        self.kd_lf=kd_lf
-        self.ke_lf=ke_lf
-        self.km_lf=km_lf
-        # self.k_bw_phytoplankton=k_bw_phytoplankton
-        # self.k_bw_zoo=k_bw_zoo
-        # self.k_bw_beninv=k_bw_beninv
-        # self.k_bw_ff=k_bw_ff
-        # self.k_bw_sf=k_bw_sf
-        # self.k_bw_mf=k_bw_mf
-        # self.k_bw_lf=k_bw_lf
-        self.rate_constants=rate_constants
-        self.s_respire=s_respire
-        self.phyto_respire=phyto_respire
-        self.zoo_respire=zoo_respire
-        self.beninv_respire=beninv_respire
-        self.ff_respire=ff_respire
-        self.sfish_respire=sfish_respire
-        self.mfish_respire=mfish_respire
-        self.lfish_respire=lfish_respire
+            self.bw_mamm = pd_obj['self.bwm_other']
+        self.mammalian_ld50 = pd_obj['mammalian_ld50']
+        self.mammalian_lc50 = pd_obj['mammalian_lc50']
+        self.mammalian_chronic_endpoint = pd_obj['mammalian_chronic_endpoint']
+        self.lf_p_sediment = pd_obj['lf_p_sediment']
+        self.lf_p_phytoplankton = pd_obj['lf_p_phytoplankton']
+        self.lf_p_zooplankton = pd_obj['lf_p_zooplankton']
+        self.lf_p_benthic_invertebrates = pd_obj['lf_p_benthic_invertebrates']
+        self.lf_p_filter_feeders = pd_obj['lf_p_filter_feeders']
+        self.lf_p_small_fish = pd_obj['lf_p_small_fish']
+        self.lf_p_medium_fish = pd_obj['lf_p_medium_fish']
+        self.mf_p_sediment = pd_obj['mf_p_sediment']
+        self.mf_p_phytoplankton = pd_obj['mf_p_phytoplankton']
+        self.mf_p_zooplankton = pd_obj['mf_p_zooplankton']
+        self.mf_p_benthic_invertebrates = pd_obj['mf_p_benthic_invertebrates']
+        self.mf_p_filter_feeders = pd_obj['mf_p_filter_feeders']
+        self.mf_p_small_fish = pd_obj['mf_p_small_fish']
+        self.sf_p_sediment = pd_obj['sf_p_sediment']
+        self.sf_p_phytoplankton = pd_obj['sf_p_phytoplankton']
+        self.sf_p_zooplankton = pd_obj['sf_p_zooplankton']
+        self.sf_p_benthic_invertebrates = pd_obj['sf_p_benthic_invertebrates']
+        self.sf_p_filter_feeders = pd_obj['sf_p_filter_feeders']
+        self.ff_p_sediment = pd_obj['ff_p_sediment']
+        self.ff_p_phytoplankton = pd_obj['ff_p_phytoplankton']
+        self.ff_p_zooplankton = pd_obj['ff_p_zooplankton']
+        self.ff_p_benthic_invertebrates = pd_obj['ff_p_benthic_invertebrates']
+        self.beninv_p_sediment = pd_obj['beninv_p_sediment']
+        self.beninv_p_phytoplankton = pd_obj['beninv_p_phytoplankton']
+        self.beninv_p_zooplankton = pd_obj['beninv_p_zooplankton']
+        self.zoo_p_sediment = pd_obj['zoo_p_sediment']
+        self.zoo_p_phyto = pd_obj['zoo_p_phyto']
+        self.s_lipid = pd_obj['s_lipid']
+        self.s_NLOM = pd_obj['s_NLOM']
+        self.s_water = pd_obj['s_water']
+        self.v_lb_phytoplankton = pd_obj['v_lb_phytoplankton']
+        self.v_nb_phytoplankton = pd_obj['v_nb_phytoplankton']
+        self.v_wb_phytoplankton = pd_obj['v_wb_phytoplankton']
+        self.wb_zoo = pd_obj['wb_zoo']
+        self.v_lb_zoo = pd_obj['v_lb_zoo']
+        self.v_nb_zoo = pd_obj['v_nb_zoo']
+        self.v_wb_zoo = pd_obj['v_wb_zoo']
+        self.wb_beninv = pd_obj['wb_beninv']
+        self.v_lb_beninv = pd_obj['v_lb_beninv']
+        self.v_nb_beninv = pd_obj['v_nb_beninv']
+        self.v_wb_beninv = pd_obj['v_wb_beninv']
+        self.wb_ff = pd_obj['wb_ff']
+        self.v_lb_ff = pd_obj['v_lb_ff']
+        self.v_nb_ff = pd_obj['v_nb_ff']
+        self.v_wb_ff = pd_obj['v_wb_ff']
+        self.wb_sf = pd_obj['wb_sf']
+        self.v_lb_sf = pd_obj['v_lb_sf']
+        self.v_nb_sf = pd_obj['v_nb_sf']
+        self.v_wb_sf = pd_obj['v_wb_sf']
+        self.wb_mf = pd_obj['wb_mf']
+        self.v_lb_mf = pd_obj['v_lb_mf']
+        self.v_nb_mf = pd_obj['v_nb_mf']
+        self.v_wb_mf = pd_obj['v_wb_mf']
+        self.wb_lf = pd_obj['wb_lf']
+        self.v_lb_lf = pd_obj['v_lb_lf']
+        self.v_nb_lf = pd_obj['v_nb_lf']
+        self.v_wb_lf = pd_obj['v_wb_lf']
+        self.kg_phytoplankton = pd_obj['kg_phytoplankton']
+        self.kd_phytoplankton = pd_obj['kd_phytoplankton']
+        self.ke_phytoplankton = pd_obj['ke_phytoplankton']
+        self.mo_phytoplankton = pd_obj['mo_phytoplankton']
+        self.mp_phytoplankton = pd_obj['mp_phytoplankton']
+        self.km_phytoplankton = pd_obj['km_phytoplankton']
+        self.km_zoo = pd_obj['km_zoo']
+        self.k1_phytoplankton = pd_obj['k1_phytoplankton']
+        self.k2_phytoplankton = pd_obj['k2_phytoplankton']
+        self.k1_zoo = pd_obj['k1_zoo']
+        self.k2_zoo = pd_obj['k2_zoo']
+        self.kd_zoo = pd_obj['kd_zoo']
+        self.ke_zoo = pd_obj['ke_zoo']
+        self.k1_beninv = pd_obj['k1_beninv']
+        self.k2_beninv = pd_obj['k2_beninv']
+        self.kd_beninv = pd_obj['kd_beninv']
+        self.ke_beninv = pd_obj['ke_beninv']
+        self.km_beninv = pd_obj['km_beninv']
+        self.k1_ff = pd_obj['k1_ff']
+        self.k2_ff = pd_obj['k2_ff']
+        self.kd_ff = pd_obj['kd_ff']
+        self.ke_ff = pd_obj['ke_ff']
+        self.km_ff = pd_obj['km_ff']
+        self.k1_sf = pd_obj['k1_sf']
+        self.k2_sf = pd_obj['k2_sf']
+        self.kd_sf = pd_obj['kd_sf']
+        self.ke_sf = pd_obj['ke_sf']
+        self.km_sf = pd_obj['km_sf']
+        self.k1_mf = pd_obj['k1_mf']
+        self.k2_mf = pd_obj['k2_mf']
+        self.kd_mf = pd_obj['kd_mf']
+        self.ke_mf = pd_obj['ke_mf']
+        self.km_mf = pd_obj['km_mf']
+        self.k1_lf = pd_obj['k1_lf']
+        self.k2_lf = pd_obj['k2_lf']
+        self.kd_lf = pd_obj['kd_lf']
+        self.ke_lf = pd_obj['ke_lf']
+        self.km_lf = pd_obj['km_lf']
+        # self.k_bw_phytoplankton = pd_obj['k_bw_phytoplankton']
+        # self.k_bw_zoo = pd_obj['k_bw_zoo']
+        # self.k_bw_beninv = pd_obj['k_bw_beninv']
+        # self.k_bw_ff = pd_obj['k_bw_ff']
+        # self.k_bw_sf = pd_obj['k_bw_sf']
+        # self.k_bw_mf = pd_obj['k_bw_mf']
+        # self.k_bw_lf = pd_obj['k_bw_lf']
+        self.rate_constants = pd_obj['rate_constants']
+        self.s_respire = pd_obj['s_respire']
+        self.phyto_respire = pd_obj['phyto_respire']
+        self.zoo_respire = pd_obj['zoo_respire']
+        self.beninv_respire = pd_obj['beninv_respire']
+        self.ff_respire = pd_obj['ff_respire']
+        self.sfish_respire = pd_obj['sfish_respire']
+        self.mfish_respire = pd_obj['mfish_respire']
+        self.lfish_respire = pd_obj['lfish_respire']
 
-
-        #outputs
-        if self.rate_constants == 'a':
-            self.k_bw_phytoplankton_f()
-            self.k1_phytoplankton_f()
-            self.k2_phytoplankton_f()
-            self.ew_zoo_f()
-            self.gv_zoo_f()
-            self.k_bw_zoo_f()
-            self.ed_zoo_f()
-            self.gd_zoo_f()
-            self.k1_zoo_f()
-            self.k2_zoo_f()
-            self.kd_zoo_f()
-            self.v_nd_zoo_f()
-            self.v_wd_zoo_f()
-            self.v_ld_zoo_f()
-            self.gf_zoo_f()
-            self.vlg_zoo_f()
-            self.vng_zoo_f()
-            self.vwg_zoo_f()
-            self.kgb_zoo_f()
-            self.ke_zoo_f()
-
-            self.k_bw_beninv_f()
-            self.ed_beninv_f()
-            self.gd_beninv_f()
-            self.kg_beninv_f()
-            self.v_ld_beninv_f()
-            self.v_nd_beninv_f()
-            self.v_wd_beninv_f()
-            self.gf_beninv_f()
-            self.vlg_beninv_f()
-            self.vng_beninv_f()
-            self.vwg_beninv_f()
-            self.kgb_beninv_f()
-            self.ew_beninv_f()
-            self.gv_beninv_f()
-            self.k1_beninv_f()
-            self.k2_beninv_f()
-            self.kd_beninv_f()
-            self.ke_beninv_f()
-
-            self.gv_ff_f()
-            self.ew_ff_f()
-            self.k_bw_ff_f()
-            self.ed_ff_f()
-            self.gd_ff_f()
-            self.kg_ff_f()
-            self.v_ld_ff_f()
-            self.v_nd_ff_f()
-            self.v_wd_ff_f()
-            self.gf_ff_f()
-            self.vlg_ff_f()
-            self.vng_ff_f()
-            self.vwg_ff_f()
-            self.kgb_ff_f()
-            self.k1_ff_f()
-            self.k2_ff_f()
-            self.kd_ff_f()
-            self.ke_ff_f()
-
-            self.gv_sf_f()
-            self.ew_sf_f()
-            self.k_bw_sf_f()
-            self.ed_sf_f()
-            self.gd_sf_f()
-            self.kg_sf_f()
-            self.v_ld_sf_f()
-            self.v_nd_sf_f()
-            self.v_wd_sf_f()
-            self.gf_sf_f()
-            self.vlg_sf_f()
-            self.vng_sf_f()
-            self.vwg_sf_f()
-            self.kgb_sf_f()
-            self.k1_sf_f()
-            self.k2_sf_f()
-            self.kd_sf_f()
-            self.ke_sf_f()
-
-            self.gv_mf_f()
-            self.ew_mf_f()
-            self.k_bw_mf_f()
-            self.ed_mf_f()
-            self.gd_mf_f()
-            self.kg_mf_f()
-            self.v_ld_mf_f()
-            self.v_nd_mf_f()
-            self.v_wd_mf_f()
-            self.gf_mf_f()
-            self.vlg_mf_f()
-            self.vng_mf_f()
-            self.vwg_mf_f()
-            self.kgb_mf_f()
-            self.k1_mf_f()
-            self.k2_mf_f()
-            self.kd_mf_f()
-            self.ke_mf_f()
-            
-            self.gv_lf_f()
-            self.ew_lf_f()
-            self.k_bw_lf_f()
-            self.ed_lf_f()
-            self.gd_lf_f()
-            self.kg_lf_f()
-            self.v_ld_lf_f()
-            self.v_nd_lf_f()
-            self.v_wd_lf_f()
-            self.gf_lf_f()
-            self.vlg_lf_f()
-            self.vng_lf_f()
-            self.vwg_lf_f()
-            self.kgb_lf_f()
-            self.k1_lf_f()
-            self.k2_lf_f()
-            self.kd_lf_f()
-            self.ke_lf_f()
-
-        else:
-            self.k1_phytoplankton = k1_phytoplankton
-            self.k2_phytoplankton = k2_phytoplankton
-            self.kd_phytoplankton = kd_phytoplankton
-            self.ke_phytoplankton = ke_phytoplankton
-            self.km_phytoplankton = km_phytoplankton
-            self.k1_zoo = k1_zoo
-            self.k2_zoo = k2_zoo
-            self.kd_zoo = kd_zoo
-            self.ke_zoo = ke_zoo
-            self.km_zoo = km_zoo
-            self.k1_beninv = k1_beninv
-            self.k2_beninv = k2_beninv
-            self.kd_beninv = kd_beninv
-            self.ke_beninv = ke_beninv
-            self.km_beninv = km_beninv
-            self.k1_ff = k1_ff
-            self.k2_ff = k2_ff
-            self.kd_ff = kd_ff
-            self.ke_ff = ke_ff
-            self.km_ff = km_ff
-            self.k1_sf = k1_sf
-            self.k2_sf = k2_sf
-            self.kd_sf = kd_sf
-            self.ke_sf = ke_sf
-            self.km_sf = km_sf
-            self.k1_mf = k1_mf
-            self.k2_mf = k2_mf
-            self.kd_mf = kd_mf
-            self.ke_mf = ke_mf
-            self.km_mf = km_mf
-            self.k1_lf = k1_lf
-            self.k2_lf = k2_lf
-            self.kd_lf = kd_lf
-            self.ke_lf = ke_lf
-            self.km_lf = km_lf
+        # Execute model methods
         self.run_methods()
+
+        # Create DataFrame containing output value Series
+        pd_obj_out = pd.DataFrame({
+            if self.rate_constants == 'a':
+                self.k_bw_phytoplankton_f()
+                self.k1_phytoplankton_f()
+                self.k2_phytoplankton_f()
+                self.ew_zoo_f()
+                self.gv_zoo_f()
+                self.k_bw_zoo_f()
+                self.ed_zoo_f()
+                self.gd_zoo_f()
+                self.k1_zoo_f()
+                self.k2_zoo_f()
+                self.kd_zoo_f()
+                self.v_nd_zoo_f()
+                self.v_wd_zoo_f()
+                self.v_ld_zoo_f()
+                self.gf_zoo_f()
+                self.vlg_zoo_f()
+                self.vng_zoo_f()
+                self.vwg_zoo_f()
+                self.kgb_zoo_f()
+                self.ke_zoo_f()
+
+                self.k_bw_beninv_f()
+                self.ed_beninv_f()
+                self.gd_beninv_f()
+                self.kg_beninv_f()
+                self.v_ld_beninv_f()
+                self.v_nd_beninv_f()
+                self.v_wd_beninv_f()
+                self.gf_beninv_f()
+                self.vlg_beninv_f()
+                self.vng_beninv_f()
+                self.vwg_beninv_f()
+                self.kgb_beninv_f()
+                self.ew_beninv_f()
+                self.gv_beninv_f()
+                self.k1_beninv_f()
+                self.k2_beninv_f()
+                self.kd_beninv_f()
+                self.ke_beninv_f()
+
+                self.gv_ff_f()
+                self.ew_ff_f()
+                self.k_bw_ff_f()
+                self.ed_ff_f()
+                self.gd_ff_f()
+                self.kg_ff_f()
+                self.v_ld_ff_f()
+                self.v_nd_ff_f()
+                self.v_wd_ff_f()
+                self.gf_ff_f()
+                self.vlg_ff_f()
+                self.vng_ff_f()
+                self.vwg_ff_f()
+                self.kgb_ff_f()
+                self.k1_ff_f()
+                self.k2_ff_f()
+                self.kd_ff_f()
+                self.ke_ff_f()
+
+                self.gv_sf_f()
+                self.ew_sf_f()
+                self.k_bw_sf_f()
+                self.ed_sf_f()
+                self.gd_sf_f()
+                self.kg_sf_f()
+                self.v_ld_sf_f()
+                self.v_nd_sf_f()
+                self.v_wd_sf_f()
+                self.gf_sf_f()
+                self.vlg_sf_f()
+                self.vng_sf_f()
+                self.vwg_sf_f()
+                self.kgb_sf_f()
+                self.k1_sf_f()
+                self.k2_sf_f()
+                self.kd_sf_f()
+                self.ke_sf_f()
+
+                self.gv_mf_f()
+                self.ew_mf_f()
+                self.k_bw_mf_f()
+                self.ed_mf_f()
+                self.gd_mf_f()
+                self.kg_mf_f()
+                self.v_ld_mf_f()
+                self.v_nd_mf_f()
+                self.v_wd_mf_f()
+                self.gf_mf_f()
+                self.vlg_mf_f()
+                self.vng_mf_f()
+                self.vwg_mf_f()
+                self.kgb_mf_f()
+                self.k1_mf_f()
+                self.k2_mf_f()
+                self.kd_mf_f()
+                self.ke_mf_f()
+                
+                self.gv_lf_f()
+                self.ew_lf_f()
+                self.k_bw_lf_f()
+                self.ed_lf_f()
+                self.gd_lf_f()
+                self.kg_lf_f()
+                self.v_ld_lf_f()
+                self.v_nd_lf_f()
+                self.v_wd_lf_f()
+                self.gf_lf_f()
+                self.vlg_lf_f()
+                self.vng_lf_f()
+                self.vwg_lf_f()
+                self.kgb_lf_f()
+                self.k1_lf_f()
+                self.k2_lf_f()
+                self.kd_lf_f()
+                self.ke_lf_f()
+
+            else:
+                self.k1_phytoplankton = k1_phytoplankton
+                self.k2_phytoplankton = k2_phytoplankton
+                self.kd_phytoplankton = kd_phytoplankton
+                self.ke_phytoplankton = ke_phytoplankton
+                self.km_phytoplankton = km_phytoplankton
+                self.k1_zoo = k1_zoo
+                self.k2_zoo = k2_zoo
+                self.kd_zoo = kd_zoo
+                self.ke_zoo = ke_zoo
+                self.km_zoo = km_zoo
+                self.k1_beninv = k1_beninv
+                self.k2_beninv = k2_beninv
+                self.kd_beninv = kd_beninv
+                self.ke_beninv = ke_beninv
+                self.km_beninv = km_beninv
+                self.k1_ff = k1_ff
+                self.k2_ff = k2_ff
+                self.kd_ff = kd_ff
+                self.ke_ff = ke_ff
+                self.km_ff = km_ff
+                self.k1_sf = k1_sf
+                self.k2_sf = k2_sf
+                self.kd_sf = kd_sf
+                self.ke_sf = ke_sf
+                self.km_sf = km_sf
+                self.k1_mf = k1_mf
+                self.k2_mf = k2_mf
+                self.kd_mf = kd_mf
+                self.ke_mf = ke_mf
+                self.km_mf = km_mf
+                self.k1_lf = k1_lf
+                self.k2_lf = k2_lf
+                self.kd_lf = kd_lf
+                self.ke_lf = ke_lf
+                self.km_lf = km_lf
+        })
 
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
+
+    def json(self, pd_obj, pd_obj_out, pd_obj_exp):
+        """
+            Convert DataFrames to JSON, returning a tuple 
+            of JSON strings (inputs, outputs, exp_out)
+        """
+        
+        pd_obj_json = pd_obj.to_json()
+        pd_obj_out_json = pd_obj_out.to_json()
+        try:
+            pd_obj_exp_json = pd_obj_exp.to_json()
+        except:
+            pd_obj_exp_json = "{}"
+        
+        return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
 
     def run_methods(self):
         self.phi_f()
