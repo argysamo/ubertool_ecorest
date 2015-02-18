@@ -14,24 +14,34 @@ class trex2(object):
         self.use = pd_obj['use']
         self.formu_name = pd_obj['formu_name']
         self.a_i = pd_obj['a_i']
-        self.a_i_t1 = pd_obj['100*float(a_i)']
+        self.a_i = self.a_i / 100 # change from percentage to proportion
         self.Application_type = pd_obj['Application_type']
         self.seed_treatment_formulation_name = pd_obj['seed_treatment_formulation_name']
         self.seed_crop = pd_obj['seed_crop']
         self.seed_crop_v = pd_obj['seed_crop_v']
         self.r_s = pd_obj['r_s']
         self.b_w = pd_obj['b_w']
-        self.b_w_t1 = pd_obj['12*float(b_w)']
+        self.b_w = self.b_w / 12 #convert to ft
         self.p_i = pd_obj['p_i']
-        try:
-            self.p_i_t1 = pd_obj['100*float(p_i)']
-        except:
-            self.p_i_t1 = pd_obj[''N/A'']
+        self.p_i = self.p_i / 100 # change from percentage to proportion
         self.den = pd_obj['den']
         self.h_l = pd_obj['h_l']
-        self.n_a = pd_obj['n_a']
-        self.ar_lb = pd_obj['ar_lb']
-        self.day_out = pd_obj['day_out']
+        self.noa = pd_obj['noa']
+
+        self.rate_out = [] # have to build here
+        self.day_out = [] # have to build here
+        self.nappdays = int(self.noa)
+        for i in range(self.nappdays):
+           j=i+1
+           #rate_temp = request.POST.get('rate'+str(j))
+           rate_temp = getattr(pd_obj, 'rate' + str(j))
+           self.rate_out.append(float(rate_temp))
+           #day_temp = float(request.POST.get('day'+str(j)))
+           day_temp = getattr(pd_obj, 'day' + str(j))
+           self.day_out.append(day_temp) 
+       
+        self.ar_lb = self.rate_out[0] #?
+
         self.ld50_bird = pd_obj['ld50_bird']
         self.lc50_bird = pd_obj['lc50_bird']
         self.NOAEC_bird = pd_obj['NOAEC_bird']
@@ -49,7 +59,7 @@ class trex2(object):
         self.tw_bird_lc50 = pd_obj['tw_bird_lc50']
         self.tw_bird_NOAEC = pd_obj['tw_bird_NOAEC']
         self.tw_bird_NOAEL = pd_obj['tw_bird_NOAEL']
-        self.x = pd_obj['x']
+        self.x = pd_obj['x'] # mineau scaling factor
         self.ld50_mamm = pd_obj['ld50_mamm']
         self.lc50_mamm = pd_obj['lc50_mamm']
         self.NOAEC_mamm = pd_obj['NOAEC_mamm']
@@ -60,204 +70,389 @@ class trex2(object):
         self.tw_mamm = pd_obj['tw_mamm']
         self.m_s_r_p = pd_obj['m_s_r_p']
         
+        # Outputs: Assign object attribute variables to Pandas Series
+        #Table5
+        self.sa_bird_1 = pd.Series(name="sa_bird_1")
+        self.sa_bird_2 = pd.Series(name="sa_bird_2")
+        self.sc_bird = pd.Series(name="sc_bird")
+        self.sa_mamm_1 = pd.Series(name="sa_mamm_1")
+        self.sa_mamm_2 = pd.Series(name="sa_mamm_2")
+        self.sc_mamm = pd.Series(name="sc_mamm")
+
+        self.sa_bird_1 = pd.Series(name="sa_bird_1")
+        self.sa_bird_2 = pd.Series(name="sa_bird_2")
+        self.sc_bird = pd.Series(name="sc_bird")
+        self.sa_mamm_1 = pd.Series(name="sa_mamm_1")
+        self.sa_mamm_2 = pd.Series(name="sa_mamm_2")
+        self.sc_mamm = pd.Series(name="sc_mamm")
+
+        self.sa_bird_1 = pd.Series(name="sa_bird_1")
+        self.sa_bird_2 = pd.Series(name="sa_bird_2")
+        self.sc_bird = pd.Series(name="sc_bird")
+        self.sa_mamm_1 = pd.Series(name="sa_mamm_1")
+        self.sa_mamm_2 = pd.Series(name="sa_mamm_2")
+        self.sc_mamm = pd.Series(name="sc_mamm")
+
+        #Table 6
+        self.EEC_diet_SG = pd.Series(name="EEC_diet_SG")#self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_diet_TG = pd.Series(name="EEC_diet_TG")#self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_diet_BP = pd.Series(name="EEC_diet_BP")#self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_diet_FR = pd.Series(name="EEC_diet_FR")#self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_diet_AR = pd.Series(name="EEC_diet_AR")#self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+
+        #Table 7
+        self.EEC_dose_bird_SG_sm = pd.Series(name="EEC_dose_bird_SG_sm")#self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_bird_SG_md = pd.Series(name="EEC_dose_bird_SG_md")#self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_bird_SG_lg = pd.Series(name="EEC_dose_bird_SG_lg")#self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_bird_TG_sm = pd.Series(name="EEC_dose_bird_TG_sm")#self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_bird_TG_md = pd.Series(name="EEC_dose_bird_TG_md")#self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_bird_TG_lg = pd.Series(name="EEC_dose_bird_TG_lg")#self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_bird_BP_sm = pd.Series(name="EEC_dose_bird_BP_sm")#self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_bird_BP_md = pd.Series(name="EEC_dose_bird_BP_md")#self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_bird_BP_lg = pd.Series(name="EEC_dose_bird_BP_lg")#self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_bird_FP_sm = pd.Series(name="EEC_dose_bird_FP_sm")#self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_FP_md = pd.Series(name="EEC_dose_bird_FP_md")#self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_FP_lg = pd.Series(name="EEC_dose_bird_FP_lg")#self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_AR_sm = pd.Series(name="EEC_dose_bird_AR_sm")#self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_bird_AR_md = pd.Series(name="EEC_dose_bird_AR_md")#self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_bird_AR_lg = pd.Series(name="EEC_dose_bird_AR_lg")#self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_bird_SE_sm = pd.Series(name="EEC_dose_bird_SE_sm")#self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_SE_md = pd.Series(name="EEC_dose_bird_SE_md")#self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_SE_lg = pd.Series(name="EEC_dose_bird_SE_lg")#self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #Table 7_add
+        self.ARQ_bird_SG_sm = pd.Series(name="ARQ_bird_SG_sm")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_bird_SG_md = pd.Series(name="ARQ_bird_SG_md")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_bird_SG_lg = pd.Series(name="ARQ_bird_SG_lg")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_bird_TG_sm = pd.Series(name="ARQ_bird_TG_sm")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_bird_TG_md = pd.Series(name="ARQ_bird_TG_md")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_bird_TG_lg = pd.Series(name="ARQ_bird_TG_lg")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_bird_BP_sm = pd.Series(name="ARQ_bird_BP_sm")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_bird_BP_md = pd.Series(name="ARQ_bird_BP_md")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_bird_BP_lg = pd.Series(name="ARQ_bird_BP_lg")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_bird_FP_sm = pd.Series(name="ARQ_bird_FP_sm")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_FP_md = pd.Series(name="ARQ_bird_FP_md")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_FP_lg = pd.Series(name="ARQ_bird_FP_lg")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_AR_sm = pd.Series(name="ARQ_bird_AR_sm")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_bird_AR_md = pd.Series(name="ARQ_bird_AR_md")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_bird_AR_lg = pd.Series(name="ARQ_bird_AR_lg")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_bird_SE_sm = pd.Series(name="ARQ_bird_SE_sm")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_SE_md = pd.Series(name="ARQ_bird_SE_md")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_SE_lg = pd.Series(name="ARQ_bird_SE_lg")#self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #Table 8
+        self.ARQ_diet_bird_SG_A = pd.Series(name="ARQ_diet_bird_SG_A")#self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_diet_bird_SG_C = pd.Series(name="ARQ_diet_bird_SG_C")#self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l,day_out)
+        self.ARQ_diet_bird_TG_A = pd.Series(name="ARQ_diet_bird_TG_A")#self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
+        self.ARQ_diet_bird_TG_C = pd.Series(name="ARQ_diet_bird_TG_C")#self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
+        self.ARQ_diet_bird_BP_A = pd.Series(name="ARQ_diet_bird_BP_A")#self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_diet_bird_BP_C = pd.Series(name="ARQ_diet_bird_BP_C")#self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_diet_bird_FP_A = pd.Series(name="ARQ_diet_bird_FP_A")#self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_diet_bird_FP_C = pd.Series(name="ARQ_diet_bird_FP_C")#self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_diet_bird_AR_A = pd.Series(name="ARQ_diet_bird_AR_A")#self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_diet_bird_AR_C = pd.Series(name="ARQ_diet_bird_AR_C")#self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+
+        #Table 9
+        self.EEC_dose_mamm_SG_sm = pd.Series(name="EEC_dose_mamm_SG_sm")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_mamm_SG_md = pd.Series(name="EEC_dose_mamm_SG_md")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_mamm_SG_lg = pd.Series(name="EEC_dose_mamm_SG_lg")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_mamm_TG_sm = pd.Series(name="EEC_dose_mamm_TG_sm")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_mamm_TG_md = pd.Series(name="EEC_dose_mamm_TG_md")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_mamm_TG_lg = pd.Series(name="EEC_dose_mamm_TG_lg")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_mamm_BP_sm = pd.Series(name="EEC_dose_mamm_BP_sm")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_mamm_BP_md = pd.Series(name="EEC_dose_mamm_BP_md")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_mamm_BP_lg = pd.Series(name="EEC_dose_mamm_BP_lg")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_mamm_FP_sm = pd.Series(name="EEC_dose_mamm_FP_sm")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_FP_md = pd.Series(name="EEC_dose_mamm_FP_md")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_FP_lg = pd.Series(name="EEC_dose_mamm_FP_lg")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_AR_sm = pd.Series(name="EEC_dose_mamm_AR_sm")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_mamm_AR_md = pd.Series(name="EEC_dose_mamm_AR_md")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_mamm_AR_lg = pd.Series(name="EEC_dose_mamm_AR_lg")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_mamm_SE_sm = pd.Series(name="EEC_dose_mamm_SE_sm")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_SE_md = pd.Series(name="EEC_dose_mamm_SE_md")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_SE_lg = pd.Series(name="EEC_dose_mamm_SE_lg")#self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #Table 10
+        self.ARQ_dose_mamm_SG_sm = pd.Series(name="ARQ_dose_mamm_SG_sm")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_dose_mamm_SG_sm = pd.Series(name="CRQ_dose_mamm_SG_sm")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_dose_mamm_SG_md = pd.Series(name="ARQ_dose_mamm_SG_md")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_dose_mamm_SG_md = pd.Series(name="CRQ_dose_mamm_SG_md")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_dose_mamm_SG_lg = pd.Series(name="ARQ_dose_mamm_SG_lg")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_dose_mamm_SG_lg = pd.Series(name="CRQ_dose_mamm_SG_lg")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+
+        self.ARQ_dose_mamm_TG_sm = pd.Series(name="ARQ_dose_mamm_TG_sm")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_dose_mamm_TG_sm = pd.Series(name="CRQ_dose_mamm_TG_sm")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_dose_mamm_TG_md = pd.Series(name="ARQ_dose_mamm_TG_md")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_dose_mamm_TG_md = pd.Series(name="CRQ_dose_mamm_TG_md")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_dose_mamm_TG_lg = pd.Series(name="ARQ_dose_mamm_TG_lg")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_dose_mamm_TG_lg = pd.Series(name="CRQ_dose_mamm_TG_lg")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+
+        self.ARQ_dose_mamm_BP_sm = pd.Series(name="ARQ_dose_mamm_BP_sm")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_dose_mamm_BP_sm = pd.Series(name="CRQ_dose_mamm_BP_sm")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_dose_mamm_BP_md = pd.Series(name="ARQ_dose_mamm_BP_md")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_dose_mamm_BP_md = pd.Series(name="CRQ_dose_mamm_BP_md")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_dose_mamm_BP_lg = pd.Series(name="ARQ_dose_mamm_BP_lg")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_dose_mamm_BP_lg = pd.Series(name="CRQ_dose_mamm_BP_lg")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+
+        self.ARQ_dose_mamm_FP_sm = pd.Series(name="ARQ_dose_mamm_FP_sm")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_FP_sm = pd.Series(name="CRQ_dose_mamm_FP_sm")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_FP_md = pd.Series(name="ARQ_dose_mamm_FP_md")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_FP_md = pd.Series(name="CRQ_dose_mamm_FP_md")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_FP_lg = pd.Series(name="ARQ_dose_mamm_FP_lg")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_FP_lg = pd.Series(name="CRQ_dose_mamm_FP_lg")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        self.ARQ_dose_mamm_AR_sm = pd.Series(name="ARQ_dose_mamm_AR_sm")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.CRQ_dose_mamm_AR_sm = pd.Series(name="CRQ_dose_mamm_AR_sm")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_dose_mamm_AR_md = pd.Series(name="ARQ_dose_mamm_AR_md")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.CRQ_dose_mamm_AR_md = pd.Series(name="CRQ_dose_mamm_AR_md")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_dose_mamm_AR_lg = pd.Series(name="ARQ_dose_mamm_AR_lg")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.CRQ_dose_mamm_AR_lg = pd.Series(name="CRQ_dose_mamm_AR_lg")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+
+        self.ARQ_dose_mamm_SE_sm = pd.Series(name="ARQ_dose_mamm_SE_sm")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_SE_sm = pd.Series(name="CRQ_dose_mamm_SE_sm")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_SE_md = pd.Series(name="ARQ_dose_mamm_SE_md")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_SE_md = pd.Series(name="CRQ_dose_mamm_SE_md")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_SE_lg = pd.Series(name="ARQ_dose_mamm_SE_lg")#self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_SE_lg = pd.Series(name="CRQ_dose_mamm_SE_lg")#self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #table 11
+        self.ARQ_diet_mamm_SG = pd.Series(name="ARQ_diet_mamm_SG")#self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_diet_mamm_TG = pd.Series(name="ARQ_diet_mamm_TG")#self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_diet_mamm_BP = pd.Series(name="ARQ_diet_mamm_BP")#self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_diet_mamm_FP = pd.Series(name="ARQ_diet_mamm_FP")#self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_diet_mamm_AR = pd.Series(name="ARQ_diet_mamm_AR")#self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+
+        self.CRQ_diet_mamm_SG = pd.Series(name="CRQ_diet_mamm_SG")#self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_diet_mamm_TG = pd.Series(name="CRQ_diet_mamm_TG")#self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_diet_mamm_BP = pd.Series(name="CRQ_diet_mamm_BP")#self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_diet_mamm_FP = pd.Series(name="CRQ_diet_mamm_FP")#self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_diet_mamm_AR = pd.Series(name="CRQ_diet_mamm_AR")#self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+  
+        #Table12
+        self.LD50_rg_bird_sm = pd.Series(name="LD50_rg_bird_sm")#self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rg_mamm_sm = pd.Series(name="LD50_rg_mamm_sm")#self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rg_bird_md = pd.Series(name="LD50_rg_bird_md")#self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rg_mamm_md = pd.Series(name="LD50_rg_mamm_md")#self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rg_bird_lg = pd.Series(name="LD50_rg_bird_lg")#self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rg_mamm_lg = pd.Series(name="LD50_rg_mamm_lg")#self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        #Table13
+        self.LD50_rl_bird_sm = pd.Series(name="LD50_rl_bird_sm")#self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rl_mamm_sm = pd.Series(name="LD50_rl_mamm_sm")#self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rl_bird_md = pd.Series(name="LD50_rl_bird_md")#self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rl_mamm_md = pd.Series(name="LD50_rl_mamm_md")#self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rl_bird_lg = pd.Series(name="LD50_rl_bird_lg")#self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rl_mamm_lg = pd.Series(name="LD50_rl_mamm_lg")#self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        #Table14
+        self.LD50_bg_bird_sm = pd.Series(name="LD50_bg_bird_sm")#self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bg_mamm_sm = pd.Series(name="LD50_bg_mamm_sm")#self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bg_bird_md = pd.Series(name="LD50_bg_bird_md")#self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bg_mamm_md = pd.Series(name="LD50_bg_mamm_md")#self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bg_bird_lg = pd.Series(name="LD50_bg_bird_lg")#self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bg_mamm_lg = pd.Series(name="LD50_bg_mamm_lg")#self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        #Table15
+        self.LD50_bl_bird_sm = pd.Series(name="LD50_bl_bird_sm")#self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bl_mamm_sm = pd.Series(name="LD50_bl_mamm_sm")#self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bl_bird_md = pd.Series(name="LD50_bl_bird_md")#self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bl_mamm_md = pd.Series(name="LD50_bl_mamm_md")#self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bl_bird_lg = pd.Series(name="LD50_bl_bird_lg")#self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bl_mamm_lg = pd.Series(name="LD50_bl_mamm_lg")#self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        # Execute model methods
+        self.run_methods()
 
         # Create DataFrame containing output value Series
         pd_obj_out = pd.DataFrame({
             #Table5
-            'sa_bird_1_s' : = self.sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_sm, tw_bird_ld50, x, 0.02) 
-            'sa_bird_2_s' : = self.sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_sm, tw_bird_ld50, x, 0.02) 
-            'sc_bird_s' : = self.sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
-            'sa_mamm_1_s' : = self.sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_sm, tw_mamm, 0.015)
-            'sa_mamm_2_s' : = self.sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_sm, tw_mamm, 0.015)
-            'sc_mamm_s' : = self.sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 0.015)
+            'sa_bird_1_s' : self.sa_bird_1_s, #sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_sm, tw_bird_ld50, x, 0.02) 
+            'sa_bird_2_s' : self.sa_bird_2_s, #sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_sm, tw_bird_ld50, x, 0.02) 
+            'sc_bird_s' : self.sc_bird_s, #sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
+            'sa_mamm_1_s' : self.sa_mamm_1_s, #sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_sm, tw_mamm, 0.015)
+            'sa_mamm_2_s' : self.sa_mamm_2_s, #sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_sm, tw_mamm, 0.015)
+            'sc_mamm_s' : self.sc_mamm_s, #sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 0.015)
 
-            'sa_bird_1_m' : = self.sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_md, tw_bird_ld50, x, 0.1) 
-            'sa_bird_2_m' : = self.sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_md, tw_bird_ld50, x, 0.1) 
-            'sc_bird_m' : = self.sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
-            'sa_mamm_1_m' : = self.sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_md, tw_mamm, 0.035)
-            'sa_mamm_2_m' : = self.sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_md, tw_mamm, 0.035)
-            'sc_mamm_m' : = self.sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm,aw_mamm_md, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 0.035)
+            'sa_bird_1_m' : self.sa_bird_1_m, #sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_md, tw_bird_ld50, x, 0.1) 
+            'sa_bird_2_m' : self.sa_bird_2_m, #sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_md, tw_bird_ld50, x, 0.1) 
+            'sc_bird_m' : self.sc_bird_m, #sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
+            'sa_mamm_1_m' : self.sa_mamm_1_m, #sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_md, tw_mamm, 0.035)
+            'sa_mamm_2_m' : self.sa_mamm_2_m, #sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_md, tw_mamm, 0.035)
+            'sc_mamm_m' : self.sc_mamm_m, #sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm,aw_mamm_md, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 0.035)
 
-            'sa_bird_1_l' : = self.sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_lg, tw_bird_ld50, x, 1.0) 
-            'sa_bird_2_l' : = self.sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_lg, tw_bird_ld50, x, 1.0) 
-            'sc_bird_l' : = self.sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
-            'sa_mamm_1_l' : = self.sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_lg, tw_mamm, 1)
-            'sa_mamm_2_l' : = self.sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_lg, tw_mamm, 1)
-            'sc_mamm_l' : = self.sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm,aw_mamm_lg, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 1)
+            'sa_bird_1_l' : self.sa_bird_1_l, #sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_lg, tw_bird_ld50, x, 1.0) 
+            'sa_bird_2_l' : self.sa_bird_2_l, #sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_lg, tw_bird_ld50, x, 1.0) 
+            'sc_bird_l' : self.sc_bird_l, #sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
+            'sa_mamm_1_l' : self.sa_mamm_1_l, #sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_lg, tw_mamm, 1)
+            'sa_mamm_2_l' : self.sa_mamm_2_l, #sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_lg, tw_mamm, 1)
+            'sc_mamm_l' : self.sc_mamm_l, #sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm,aw_mamm_lg, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 1)
 
             #Table 6
-            'EEC_diet_SG' : = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_diet_TG' : = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_diet_BP' : = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_diet_FR' : = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_diet_AR' : = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_diet_SG' : self.EEC_diet_SG, #EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_diet_TG' : self.EEC_diet_TG, #EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_diet_BP' : self.EEC_diet_BP, #EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_diet_FR' : self.EEC_diet_FR, #EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_diet_AR' : self.EEC_diet_AR, #EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
 
             #Table 7
-            'EEC_dose_bird_SG_sm' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_dose_bird_SG_md' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_dose_bird_SG_lg' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_dose_bird_TG_sm' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_dose_bird_TG_md' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_dose_bird_TG_lg' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_dose_bird_BP_sm' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_dose_bird_BP_md' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_dose_bird_BP_lg' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_dose_bird_FP_sm' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_bird_FP_md' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_bird_FP_lg' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_bird_AR_sm' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'EEC_dose_bird_AR_md' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'EEC_dose_bird_AR_lg' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'EEC_dose_bird_SE_sm' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_bird_SE_md' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_bird_SE_lg' : = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_bird_SG_sm' : self.EEC_dose_bird_SG_sm, #EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_dose_bird_SG_md' : self.EEC_dose_bird_SG_md, #EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_dose_bird_SG_lg' : self.EEC_dose_bird_SG_lg, #EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_dose_bird_TG_sm' : self.EEC_dose_bird_TG_sm, #EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_dose_bird_TG_md' : self.EEC_dose_bird_TG_md, #EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_dose_bird_TG_lg' : self.EEC_dose_bird_TG_lg, #EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_dose_bird_BP_sm' : self.EEC_dose_bird_BP_sm, #EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_dose_bird_BP_md' : self.EEC_dose_bird_BP_md, #EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_dose_bird_BP_lg' : self.EEC_dose_bird_BP_lg, #EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_dose_bird_FP_sm' : self.EEC_dose_bird_FP_sm, #EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_bird_FP_md' : self.EEC_dose_bird_FP_md, #EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_bird_FP_lg' : self.EEC_dose_bird_FP_lg, #EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_bird_AR_sm' : self.EEC_dose_bird_AR_sm, #EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_dose_bird_AR_md' : self.EEC_dose_bird_AR_md, #EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_dose_bird_AR_lg' : self.EEC_dose_bird_AR_lg, #EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_dose_bird_SE_sm' : self.EEC_dose_bird_SE_sm, #EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_bird_SE_md' : self.EEC_dose_bird_SE_md, #EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_bird_SE_lg' : self.EEC_dose_bird_SE_lg, #EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
 
             #Table 7_add
-            'ARQ_bird_SG_sm' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'ARQ_bird_SG_md' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'ARQ_bird_SG_lg' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'ARQ_bird_TG_sm' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'ARQ_bird_TG_md' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'ARQ_bird_TG_lg' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'ARQ_bird_BP_sm' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_bird_BP_md' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_bird_BP_lg' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_bird_FP_sm' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_bird_FP_md' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_bird_FP_lg' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_bird_AR_sm' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'ARQ_bird_AR_md' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'ARQ_bird_AR_lg' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'ARQ_bird_SE_sm' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_bird_SE_md' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_bird_SE_lg' : = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_bird_SG_sm' : self.ARQ_bird_SG_sm, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_bird_SG_md' : self.ARQ_bird_SG_md, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_bird_SG_lg' : self.ARQ_bird_SG_lg, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_bird_TG_sm' : self.ARQ_bird_TG_sm, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_bird_TG_md' : self.ARQ_bird_TG_md, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_bird_TG_lg' : self.ARQ_bird_TG_lg, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_bird_BP_sm' : self.ARQ_bird_BP_sm, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_bird_BP_md' : self.ARQ_bird_BP_md, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_bird_BP_lg' : self.ARQ_bird_BP_lg, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_bird_FP_sm' : self.ARQ_bird_FP_sm, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_bird_FP_md' : self.ARQ_bird_FP_md, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_bird_FP_lg' : self.ARQ_bird_FP_lg, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_bird_AR_sm' : self.ARQ_bird_AR_sm, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_bird_AR_md' : self.ARQ_bird_AR_md, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_bird_AR_lg' : self.ARQ_bird_AR_lg, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_bird_SE_sm' : self.ARQ_bird_SE_sm, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_bird_SE_md' : self.ARQ_bird_SE_md, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_bird_SE_lg' : self.ARQ_bird_SE_lg, #ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
 
             #Table 8
-            'ARQ_diet_bird_SG_A' : = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'ARQ_diet_bird_SG_C' : = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l,day_out)
-            'ARQ_diet_bird_TG_A' : = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
-            'ARQ_diet_bird_TG_C' : = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
-            'ARQ_diet_bird_BP_A' : = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_diet_bird_BP_C' : = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_diet_bird_FP_A' : = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_diet_bird_FP_C' : = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_diet_bird_AR_A' : = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'ARQ_diet_bird_AR_C' : = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_diet_bird_SG_A' : self.ARQ_diet_bird_SG_A, #ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_diet_bird_SG_C' : self.ARQ_diet_bird_SG_C, #CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l,day_out)
+            'ARQ_diet_bird_TG_A' : self.ARQ_diet_bird_TG_A, #ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
+            'ARQ_diet_bird_TG_C' : self.ARQ_diet_bird_TG_C, #CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
+            'ARQ_diet_bird_BP_A' : self.ARQ_diet_bird_BP_A, #ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_diet_bird_BP_C' : self.ARQ_diet_bird_BP_C, #CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_diet_bird_FP_A' : self.ARQ_diet_bird_FP_A, #ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_diet_bird_FP_C' : self.ARQ_diet_bird_FP_C, #CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_diet_bird_AR_A' : self.ARQ_diet_bird_AR_A, #ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_diet_bird_AR_C' : self.ARQ_diet_bird_AR_C, #CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
                           
             #Table 9
-            'EEC_dose_mamm_SG_sm' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_dose_mamm_SG_md' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_dose_mamm_SG_lg' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'EEC_dose_mamm_TG_sm' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_dose_mamm_TG_md' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_dose_mamm_TG_lg' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'EEC_dose_mamm_BP_sm' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_dose_mamm_BP_md' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_dose_mamm_BP_lg' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'EEC_dose_mamm_FP_sm' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_mamm_FP_md' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_mamm_FP_lg' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_mamm_AR_sm' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'EEC_dose_mamm_AR_md' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'EEC_dose_mamm_AR_lg' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'EEC_dose_mamm_SE_sm' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_mamm_SE_md' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'EEC_dose_mamm_SE_lg' : self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_mamm_SG_sm' : self.EEC_dose_mamm_SG_sm, #EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_dose_mamm_SG_md' : self.EEC_dose_mamm_SG_md, #EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_dose_mamm_SG_lg' : self.EEC_dose_mamm_SG_lg, #EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'EEC_dose_mamm_TG_sm' : self.EEC_dose_mamm_TG_sm, #EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_dose_mamm_TG_md' : self.EEC_dose_mamm_TG_md, #EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_dose_mamm_TG_lg' : self.EEC_dose_mamm_TG_lg, #EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'EEC_dose_mamm_BP_sm' : self.EEC_dose_mamm_BP_sm, #EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_dose_mamm_BP_md' : self.EEC_dose_mamm_BP_md, #EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_dose_mamm_BP_lg' : self.EEC_dose_mamm_BP_lg, #EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'EEC_dose_mamm_FP_sm' : self.EEC_dose_mamm_FP_sm, #EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_mamm_FP_md' : self.EEC_dose_mamm_FP_md, #EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_mamm_FP_lg' : self.EEC_dose_mamm_FP_lg, #EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_mamm_AR_sm' : self.EEC_dose_mamm_AR_sm, #EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_dose_mamm_AR_md' : self.EEC_dose_mamm_AR_md, #EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_dose_mamm_AR_lg' : self.EEC_dose_mamm_AR_lg, #EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'EEC_dose_mamm_SE_sm' : self.EEC_dose_mamm_SE_sm, #EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_mamm_SE_md' : self.EEC_dose_mamm_SE_md, #EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'EEC_dose_mamm_SE_lg' : self.EEC_dose_mamm_SE_lg, #EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
 
             #Table 10
-            'ARQ_dose_mamm_SG_sm' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'CRQ_dose_mamm_SG_sm' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'ARQ_dose_mamm_SG_md' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'CRQ_dose_mamm_SG_md' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'ARQ_dose_mamm_SG_lg' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'CRQ_dose_mamm_SG_lg' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_dose_mamm_SG_sm' : self.ARQ_dose_mamm_SG_sm, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'CRQ_dose_mamm_SG_sm' : self.CRQ_dose_mamm_SG_sm, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_dose_mamm_SG_md' : self.ARQ_dose_mamm_SG_md, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'CRQ_dose_mamm_SG_md' : self.CRQ_dose_mamm_SG_md, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_dose_mamm_SG_lg' : self.ARQ_dose_mamm_SG_lg, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'CRQ_dose_mamm_SG_lg' : self.CRQ_dose_mamm_SG_lg, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
 
-            'ARQ_dose_mamm_TG_sm' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'CRQ_dose_mamm_TG_sm' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'ARQ_dose_mamm_TG_md' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'CRQ_dose_mamm_TG_md' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'ARQ_dose_mamm_TG_lg' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'CRQ_dose_mamm_TG_lg' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_dose_mamm_TG_sm' : self.ARQ_dose_mamm_TG_sm, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'CRQ_dose_mamm_TG_sm' : self.CRQ_dose_mamm_TG_sm, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_dose_mamm_TG_md' : self.ARQ_dose_mamm_TG_md, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'CRQ_dose_mamm_TG_md' : self.CRQ_dose_mamm_TG_md, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_dose_mamm_TG_lg' : self.ARQ_dose_mamm_TG_lg, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'CRQ_dose_mamm_TG_lg' : self.CRQ_dose_mamm_TG_lg, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
 
-            'ARQ_dose_mamm_BP_sm' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'CRQ_dose_mamm_BP_sm' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_dose_mamm_BP_md' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'CRQ_dose_mamm_BP_md' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'ARQ_dose_mamm_BP_lg' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'CRQ_dose_mamm_BP_lg' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_dose_mamm_BP_sm' : self.ARQ_dose_mamm_BP_sm, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'CRQ_dose_mamm_BP_sm' : self.CRQ_dose_mamm_BP_sm, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_dose_mamm_BP_md' : self.ARQ_dose_mamm_BP_md, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'CRQ_dose_mamm_BP_md' : self.CRQ_dose_mamm_BP_md, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_dose_mamm_BP_lg' : self.ARQ_dose_mamm_BP_lg, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'CRQ_dose_mamm_BP_lg' : self.CRQ_dose_mamm_BP_lg, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
 
-            'ARQ_dose_mamm_FP_sm' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_dose_mamm_FP_sm' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_dose_mamm_FP_md' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_dose_mamm_FP_md' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_dose_mamm_FP_lg' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_dose_mamm_FP_lg' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_dose_mamm_FP_sm' : self.ARQ_dose_mamm_FP_sm, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_dose_mamm_FP_sm' : self.CRQ_dose_mamm_FP_sm, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_dose_mamm_FP_md' : self.ARQ_dose_mamm_FP_md, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_dose_mamm_FP_md' : self.CRQ_dose_mamm_FP_md, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_dose_mamm_FP_lg' : self.ARQ_dose_mamm_FP_lg, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_dose_mamm_FP_lg' : self.CRQ_dose_mamm_FP_lg, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
 
-            'ARQ_dose_mamm_AR_sm' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'CRQ_dose_mamm_AR_sm' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'ARQ_dose_mamm_AR_md' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'CRQ_dose_mamm_AR_md' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'ARQ_dose_mamm_AR_lg' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            'CRQ_dose_mamm_AR_lg' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_dose_mamm_AR_sm' : self.ARQ_dose_mamm_AR_sm, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'CRQ_dose_mamm_AR_sm' : self.CRQ_dose_mamm_AR_sm, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_dose_mamm_AR_md' : self.ARQ_dose_mamm_AR_md, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'CRQ_dose_mamm_AR_md' : self.CRQ_dose_mamm_AR_md, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'ARQ_dose_mamm_AR_lg' : self.ARQ_dose_mamm_AR_lg, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'CRQ_dose_mamm_AR_lg' : self.CRQ_dose_mamm_AR_lg, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
 
-            'ARQ_dose_mamm_SE_sm' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_dose_mamm_SE_sm' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_dose_mamm_SE_md' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_dose_mamm_SE_md' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'ARQ_dose_mamm_SE_lg' : self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_dose_mamm_SE_lg' : self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_dose_mamm_SE_sm' : self.ARQ_dose_mamm_SE_sm, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_dose_mamm_SE_sm' : self.CRQ_dose_mamm_SE_sm, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_dose_mamm_SE_md' : self.ARQ_dose_mamm_SE_md, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_dose_mamm_SE_md' : self.CRQ_dose_mamm_SE_md, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_dose_mamm_SE_lg' : self.ARQ_dose_mamm_SE_lg, #ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_dose_mamm_SE_lg' : self.CRQ_dose_mamm_SE_lg, #CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
 
             #table 11
-            if self.lc50_mamm != 'N/A':
-                'ARQ_diet_mamm_SG' : self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-                'ARQ_diet_mamm_TG' : self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-                'ARQ_diet_mamm_BP' : self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-                'ARQ_diet_mamm_FP' : self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-                'ARQ_diet_mamm_AR' : self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
-            else:
-                'ARQ_diet_mamm_SG' : 'N/A'
-                'ARQ_diet_mamm_TG' : 'N/A'
-                'ARQ_diet_mamm_BP' : 'N/A'
-                'ARQ_diet_mamm_FP' : 'N/A'
-                'ARQ_diet_mamm_AR' : 'N/A'
+            'ARQ_diet_mamm_SG' : self.ARQ_diet_mamm_SG, #ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'ARQ_diet_mamm_TG' : self.ARQ_diet_mamm_TG, #ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'ARQ_diet_mamm_BP' : self.ARQ_diet_mamm_BP, #ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'ARQ_diet_mamm_FP' : self.ARQ_diet_mamm_FP, #ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'ARQ_diet_mamm_AR' : self.ARQ_diet_mamm_AR, #ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
 
-            'CRQ_diet_mamm_SG' : self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
-            'CRQ_diet_mamm_TG' : self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
-            'CRQ_diet_mamm_BP' : self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
-            'CRQ_diet_mamm_FP' : self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
-            'CRQ_diet_mamm_AR' : self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+            'CRQ_diet_mamm_SG' : self.CRQ_diet_mamm_SG, #CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            'CRQ_diet_mamm_TG' : self.CRQ_diet_mamm_TG, #CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            'CRQ_diet_mamm_BP' : self.CRQ_diet_mamm_BP, #CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            'CRQ_diet_mamm_FP' : self.CRQ_diet_mamm_FP, #CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            'CRQ_diet_mamm_AR' : self.CRQ_diet_mamm_AR, #CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
       
             #Table12
-            'LD50_rg_bird_sm' : self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_rg_mamm_sm' : self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_rg_bird_md' : self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_rg_mamm_md' : self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_rg_bird_lg' : self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_rg_mamm_lg' : self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_rg_bird_sm' : self.LD50_rg_bird_sm, #LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_rg_mamm_sm' : self.LD50_rg_mamm_sm, #LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_rg_bird_md' : self.LD50_rg_bird_md, #LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_rg_mamm_md' : self.LD50_rg_mamm_md, #LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_rg_bird_lg' : self.LD50_rg_bird_lg, #LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_rg_mamm_lg' : self.LD50_rg_mamm_lg, #LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
 
             #Table13
-            'LD50_rl_bird_sm' : self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_rl_mamm_sm' : self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_rl_bird_md' : self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_rl_mamm_md' : self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_rl_bird_lg' : self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_rl_mamm_lg' : self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_rl_bird_sm' : self.LD50_rl_bird_sm, #LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_rl_mamm_sm' : self.LD50_rl_mamm_sm, #LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_rl_bird_md' : self.LD50_rl_bird_md, #LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_rl_mamm_md' : self.LD50_rl_mamm_md, #LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_rl_bird_lg' : self.LD50_rl_bird_lg, #LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_rl_mamm_lg' : self.LD50_rl_mamm_lg, #LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
 
             #Table14
-            'LD50_bg_bird_sm' : self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_bg_mamm_sm' : self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_bg_bird_md' : self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_bg_mamm_md' : self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_bg_bird_lg' : self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_bg_mamm_lg' : self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_bg_bird_sm' : self.LD50_bg_bird_sm, #LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_bg_mamm_sm' : self.LD50_bg_mamm_sm, #LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_bg_bird_md' : self.LD50_bg_bird_md, #LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_bg_mamm_md' : self.LD50_bg_mamm_md, #LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_bg_bird_lg' : self.LD50_bg_bird_lg, #LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_bg_mamm_lg' : self.LD50_bg_mamm_lg, #LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
 
             #Table15
-            'LD50_bl_bird_sm' : self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_bl_mamm_sm' : self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_bl_bird_md' : self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_bl_mamm_md' : self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
-            'LD50_bl_bird_lg' : self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
-            'LD50_bl_mamm_lg' : self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_bl_bird_sm' : self.LD50_bl_bird_sm, #LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_bl_mamm_sm' : self.LD50_bl_mamm_sm, #LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_bl_bird_md' : self.LD50_bl_bird_md, #LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_bl_mamm_md' : self.LD50_bl_mamm_md, #LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+            'LD50_bl_bird_lg' : self.LD50_bl_bird_lg, #LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+            'LD50_bl_mamm_lg' : self.LD50_bl_mamm_lg #LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
         })
 
         # Callable from Bottle that returns JSON
@@ -277,6 +472,205 @@ class trex2(object):
             pd_obj_exp_json = "{}"
         
         return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
+
+    # Begin model methods
+    def run_methods(self):
+        #Table5
+        self.sa_bird_1_s = self.sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_sm, tw_bird_ld50, x, 0.02) 
+        self.sa_bird_2_s = self.sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_sm, tw_bird_ld50, x, 0.02) 
+        self.sc_bird_s = self.sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
+        self.sa_mamm_1_s = self.sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_sm, tw_mamm, 0.015)
+        self.sa_mamm_2_s = self.sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_sm, tw_mamm, 0.015)
+        self.sc_mamm_s = self.sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 0.015)
+
+        self.sa_bird_1_m = self.sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_md, tw_bird_ld50, x, 0.1) 
+        self.sa_bird_2_m = self.sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_md, tw_bird_ld50, x, 0.1) 
+        self.sc_bird_m = self.sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
+        self.sa_mamm_1_m = self.sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_md, tw_mamm, 0.035)
+        self.sa_mamm_2_m = self.sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_md, tw_mamm, 0.035)
+        self.sc_mamm_m = self.sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm,aw_mamm_md, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 0.035)
+
+        self.sa_bird_1_l = self.sa_bird_1(ar_lb[0], a_i, den, self.at_bird, self.fi_bird, 0.1, ld50_bird, aw_bird_lg, tw_bird_ld50, x, 1.0) 
+        self.sa_bird_2_l = self.sa_bird_2(ar_lb[0], a_i, den, m_s_r_p, self.at_bird, ld50_bird, aw_bird_lg, tw_bird_ld50, x, 1.0) 
+        self.sc_bird_l = self.sc_bird(ar_lb[0], a_i, den, NOAEC_bird)
+        self.sa_mamm_1_l = self.sa_mamm_1(ar_lb[0], a_i, den, self.at_mamm, self.fi_mamm, 0.1, ld50_mamm, aw_mamm_lg, tw_mamm, 1)
+        self.sa_mamm_2_l = self.sa_mamm_2(ar_lb[0], a_i, den, m_s_r_p, self.at_mamm, ld50_mamm, aw_mamm_lg, tw_mamm, 1)
+        self.sc_mamm_l = self.sc_mamm(ar_lb[0], a_i, den, NOAEL_mamm,aw_mamm_lg, self.fi_mamm, 0.1, tw_mamm, self.ANOAEL_mamm, 1)
+
+        #Table 6
+        self.EEC_diet_SG = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_diet_TG = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_diet_BP = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_diet_FR = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_diet_AR = self.EEC_diet(self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+
+        #Table 7
+        self.EEC_dose_bird_SG_sm = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_bird_SG_md = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_bird_SG_lg = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_bird_TG_sm = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_bird_TG_md = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_bird_TG_lg = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_bird_BP_sm = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_bird_BP_md = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_bird_BP_lg = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_bird_FP_sm = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_FP_md = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_FP_lg = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_AR_sm = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_bird_AR_md = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_bird_AR_lg = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_bird_SE_sm = self.EEC_dose_bird(self.EEC_diet, aw_bird_sm, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_SE_md = self.EEC_dose_bird(self.EEC_diet, aw_bird_md, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_bird_SE_lg = self.EEC_dose_bird(self.EEC_diet, aw_bird_lg, self.fi_bird, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #Table 7_add
+        self.ARQ_bird_SG_sm = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_bird_SG_md = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_bird_SG_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_bird_TG_sm = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_bird_TG_md = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_bird_TG_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_bird_BP_sm = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_bird_BP_md = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_bird_BP_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_bird_FP_sm = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_FP_md = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_FP_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_AR_sm = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_bird_AR_md = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_bird_AR_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_bird_SE_sm = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_sm, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_SE_md = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_md, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_bird_SE_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, aw_bird_lg, self.fi_bird, self.at_bird, ld50_bird, tw_bird_ld50, x, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #Table 8
+        self.ARQ_diet_bird_SG_A = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_diet_bird_SG_C = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l,day_out)
+        self.ARQ_diet_bird_TG_A = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
+        self.ARQ_diet_bird_TG_C = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l,day_out)
+        self.ARQ_diet_bird_BP_A = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_diet_bird_BP_C = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_diet_bird_FP_A = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_diet_bird_FP_C = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_diet_bird_AR_A = self.ARQ_diet_bird(self.EEC_diet, lc50_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_diet_bird_AR_C = self.CRQ_diet_bird(self.EEC_diet, NOAEC_bird, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+                      
+        #Table 9
+        self.EEC_dose_mamm_SG_sm = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_mamm_SG_md = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_mamm_SG_lg = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.EEC_dose_mamm_TG_sm = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_mamm_TG_md = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_mamm_TG_lg = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.EEC_dose_mamm_BP_sm = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_mamm_BP_md = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_mamm_BP_lg = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.EEC_dose_mamm_FP_sm = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_FP_md = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_FP_lg = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_AR_sm = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_mamm_AR_md = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_mamm_AR_lg = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.EEC_dose_mamm_SE_sm = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_sm, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_SE_md = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_md, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.EEC_dose_mamm_SE_lg = self.EEC_dose_mamm(self.EEC_diet, aw_mamm_lg, self.fi_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #Table 10
+        self.ARQ_dose_mamm_SG_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_dose_mamm_SG_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_dose_mamm_SG_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_dose_mamm_SG_md = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.ARQ_dose_mamm_SG_lg = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_dose_mamm_SG_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+
+        self.ARQ_dose_mamm_TG_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_dose_mamm_TG_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_dose_mamm_TG_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_dose_mamm_TG_md = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.ARQ_dose_mamm_TG_lg = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_dose_mamm_TG_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+
+        self.ARQ_dose_mamm_BP_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_dose_mamm_BP_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_dose_mamm_BP_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_dose_mamm_BP_md = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.ARQ_dose_mamm_BP_lg = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_dose_mamm_BP_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+
+        self.ARQ_dose_mamm_FP_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_FP_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_FP_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_FP_md = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_FP_lg = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_FP_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        self.ARQ_dose_mamm_AR_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.CRQ_dose_mamm_AR_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_dose_mamm_AR_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.CRQ_dose_mamm_AR_md = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.ARQ_dose_mamm_AR_lg = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        self.CRQ_dose_mamm_AR_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.8, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+
+        self.ARQ_dose_mamm_SE_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_sm, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_SE_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_sm, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_SE_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_md, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_SE_md = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_md, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.ARQ_dose_mamm_SE_lg = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, aw_mamm_lg, self.fi_mamm, ld50_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_dose_mamm_SE_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, NOAEL_mamm, aw_mamm_lg, self.fi_mamm, tw_mamm, 0.1, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+
+        #table 11
+        if self.lc50_mamm != 'N/A':
+            self.ARQ_diet_mamm_SG = self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+            self.ARQ_diet_mamm_TG = self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+            self.ARQ_diet_mamm_BP = self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+            self.ARQ_diet_mamm_FP = self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+            self.ARQ_diet_mamm_AR = self.ARQ_diet_mamm(self.EEC_diet, lc50_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+        else:
+            self.ARQ_diet_mamm_SG = 'N/A'
+            self.ARQ_diet_mamm_TG = 'N/A'
+            self.ARQ_diet_mamm_BP = 'N/A'
+            self.ARQ_diet_mamm_FP = 'N/A'
+            self.ARQ_diet_mamm_AR = 'N/A'
+
+        self.CRQ_diet_mamm_SG = self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 240, h_l, day_out)
+        self.CRQ_diet_mamm_TG = self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 110, h_l, day_out)
+        self.CRQ_diet_mamm_BP = self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 135, h_l, day_out)
+        self.CRQ_diet_mamm_FP = self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 15, h_l, day_out)
+        self.CRQ_diet_mamm_AR = self.CRQ_diet_mamm(self.EEC_diet, NOAEC_mamm, self.C_0, self.C_t, n_a, ar_lb, a_i, 94, h_l, day_out)
+  
+        #Table12
+        self.LD50_rg_bird_sm = self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rg_mamm_sm = self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rg_bird_md = self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rg_mamm_md = self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rg_bird_lg = self.LD50_rg_bird(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rg_mamm_lg = self.LD50_rg_mamm(Application_type, ar_lb, a_i, p_i, r_s, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        #Table13
+        self.LD50_rl_bird_sm = self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rl_mamm_sm = self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rl_bird_md = self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rl_mamm_md = self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_rl_bird_lg = self.LD50_rl_bird(Application_type, ar_lb, a_i, p_i, b_w, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_rl_mamm_lg = self.LD50_rl_mamm(Application_type, ar_lb, a_i, p_i, b_w, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        #Table14
+        self.LD50_bg_bird_sm = self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bg_mamm_sm = self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bg_bird_md = self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bg_mamm_md = self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bg_bird_lg = self.LD50_bg_bird(Application_type, ar_lb, a_i, p_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bg_mamm_lg = self.LD50_bg_mamm(Application_type, ar_lb, a_i, p_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
+        #Table15
+        self.LD50_bl_bird_sm = self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_sm, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bl_mamm_sm = self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_sm, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bl_bird_md = self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_md, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bl_mamm_md = self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_md, self.at_mamm, ld50_mamm, tw_mamm)
+        self.LD50_bl_bird_lg = self.LD50_bl_bird(Application_type, ar_lb, a_i, aw_bird_lg, self.at_bird, ld50_bird, tw_bird_ld50, x)
+        self.LD50_bl_mamm_lg = self.LD50_bl_mamm(Application_type, ar_lb, a_i, aw_mamm_lg, self.at_mamm, ld50_mamm, tw_mamm)
+
 
     #food intake for birds
     def fi_bird(self, aw_bird, mf_w_bird):
