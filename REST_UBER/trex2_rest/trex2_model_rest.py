@@ -703,8 +703,11 @@ class trex2(object):
     # concentration over time if application rate or time interval is variable
     #Dietary based EECs
     def EEC_diet(self, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
-    #new in trex1.5.1
-        if noa == 1:
+        #new in trex1.5.1
+        logging.info("EEC_diet")
+        logging.info(noa)
+        logging.info(noa.dtype)
+        if noa.any() == 1:
             C_temp = C_0(a_r[0], a_i, para)
             return np.array([C_temp])
         else:
