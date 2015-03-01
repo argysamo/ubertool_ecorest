@@ -1,7 +1,21 @@
 import pandas as pd
 import logging
+from functools import wraps
+import time
+
+def timefn(fn):
+    @wraps(fn)
+    def measure_time(*args, **kwargs):
+        t1 = time.time()
+        result = fn(*args, **kwargs)
+        t2 = time.time()
+        print("terrplant_model_rest.py@timefn: " + fn.func_name + " took " + 
+            "{:.6f}".format(t2-t1) + " seconds")
+        return result
+    return measure_time
 
 class terrplant(object):
+    @timefn
     def __init__(self, run_type, pd_obj, pd_obj_exp):
 
         # logging.info(pd_obj)
@@ -103,7 +117,7 @@ class terrplant(object):
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)      
         
-
+    @timefn
     def json(self, pd_obj, pd_obj_out, pd_obj_exp):
         """
             Convert DataFrames to JSON, returning a tuple 
@@ -121,6 +135,7 @@ class terrplant(object):
 
 
     # Begin model methods
+    @timefn
     def run_methods(self):
         
         try:
@@ -145,6 +160,7 @@ class terrplant(object):
             print "Type Error: Your variables are not set correctly."
 
     # EEC for runoff for dry areas
+    @timefn
     def rundry(self):
         # try:
         #     self.application_rate = float(self.application_rate)
@@ -179,6 +195,7 @@ class terrplant(object):
         return self.out_rundry
 
     # EEC for runoff to semi-aquatic areas
+    @timefn
     def runsemi(self):
         # try:
         #     self.application_rate = float(self.application_rate)
@@ -210,6 +227,7 @@ class terrplant(object):
         return self.out_runsemi
 
     # EEC for spray drift
+    @timefn
     def spray(self):
         # try:
         #     self.application_rate = float(self.application_rate)
@@ -234,6 +252,7 @@ class terrplant(object):
         return self.out_spray
 
     # EEC total for dry areas
+    @timefn
     def totaldry(self):
         # if self.out_totaldry == -1:
         #     try:
@@ -252,6 +271,7 @@ class terrplant(object):
 
 
     # EEC total for semi-aquatic areas
+    @timefn
     def totalsemi (self):
         # if self.out_totalsemi == -1:
         #     try:
@@ -285,7 +305,7 @@ class terrplant(object):
 
 
     # Risk Quotient for NON-LISTED MONOCOT seedlings exposed to Pesticide X in a DRY area
-
+    @timefn
     def nmsRQdry(self):
         # if self.out_nms_rq_dry == -1:
         #     try:
@@ -316,7 +336,7 @@ class terrplant(object):
 
 
     # Level of concern for non-listed monocot seedlings exposed to pesticide X in a dry area
-
+    @timefn
     def LOCnmsdry(self):
         # if self.out_nms_loc_dry == '':
             # try:
@@ -342,7 +362,7 @@ class terrplant(object):
         return self.out_nms_loc_dry
 
     # Risk Quotient for NON-LISTED MONOCOT seedlings exposed to Pesticide X in a SEMI-AQUATIC area
-
+    @timefn
     def nmsRQsemi(self):
         # if self.out_nms_rq_semi == -1:
         #     try:
@@ -372,6 +392,7 @@ class terrplant(object):
         return self.out_nms_rq_semi
 
     # Level of concern for non-listed monocot seedlings exposed to pesticide X in a semi-aquatic area
+    @timefn
     def LOCnmssemi(self):
         # if self.out_nms_loc_semi == '':
         #     if self.out_nms_rq_semi == -1:
@@ -393,6 +414,7 @@ class terrplant(object):
 
 
     # Risk Quotient for NON-LISTED MONOCOT seedlings exposed to Pesticide X via SPRAY drift
+    @timefn
     def nmsRQspray(self):
         # if self.out_nms_rq_spray == -1:
         #     try:
@@ -419,6 +441,7 @@ class terrplant(object):
         return self.out_nms_rq_spray
 
     # Level of concern for non-listed monocot seedlings exposed to pesticide via spray drift
+    @timefn
     def LOCnmsspray(self):
         # if self.out_nms_loc_spray == '':
         #     if self.out_nms_rq_spray == -1:
@@ -440,6 +463,7 @@ class terrplant(object):
 
 
     # Risk Quotient for LISTED MONOCOT seedlings exposed to Pesticide X in a DRY areas
+    @timefn
     def lmsRQdry(self):
         # if self.out_lms_rq_dry == -1:
         #     try:
@@ -471,6 +495,7 @@ class terrplant(object):
 
     # Level of concern for listed monocot seedlings exposed to pesticide
     #  via runoff in a dry area
+    @timefn
     def LOClmsdry(self):
         # if self.out_lms_loc_dry == '':
         #     if self.out_lms_rq_dry == -1:
@@ -492,6 +517,7 @@ class terrplant(object):
 
 
     # Risk Quotient for LISTED MONOCOT seedlings exposed to Pesticide X in a SEMI-AQUATIC area
+    @timefn
     def lmsRQsemi(self):
         # if self.out_lms_rq_semi == -1:
         #     try:
@@ -522,6 +548,7 @@ class terrplant(object):
         return self.out_lms_rq_semi
 
     # Level of concern for listed monocot seedlings exposed to pesticide X in semi-aquatic areas
+    @timefn
     def LOClmssemi(self):
         # if self.out_lms_loc_semi == '':
         #     if self.out_lms_rq_semi == -1:
@@ -543,6 +570,7 @@ class terrplant(object):
 
 
     # Risk Quotient for LISTED MONOCOT seedlings exposed to Pesticide X via SPRAY drift
+    @timefn
     def lmsRQspray(self):
         # if self.out_lms_rq_spray == -1:
         #     try:
@@ -572,6 +600,7 @@ class terrplant(object):
         return self.out_lms_rq_spray
 
     # Level of concern for listed monocot seedlings exposed to pesticide X via spray drift
+    @timefn
     def LOClmsspray(self):
         # if self.out_lms_loc_spray == '':
         #     if self.out_lms_rq_spray == -1:
@@ -593,6 +622,7 @@ class terrplant(object):
 
 
     # Risk Quotient for NON-LISTED DICOT seedlings exposed to Pesticide X in DRY areas
+    @timefn
     def ndsRQdry(self):
         # if self.out_nds_rq_dry == -1:
         #     try:
@@ -622,6 +652,7 @@ class terrplant(object):
         return self.out_nds_rq_dry
 
     # Level of concern for non-listed dicot seedlings exposed to pesticide X in dry areas
+    @timefn
     def LOCndsdry(self):
         # if self.out_nds_loc_dry == '':
         #     if self.out_nds_rq_dry == -1:
@@ -643,6 +674,7 @@ class terrplant(object):
 
 
     # Risk Quotient for NON-LISTED DICOT seedlings exposed to Pesticide X in SEMI-AQUATIC areas
+    @timefn
     def ndsRQsemi(self):
         # if self.out_nds_rq_semi == -1:
         #     try:
@@ -672,6 +704,7 @@ class terrplant(object):
         return self.out_nds_rq_semi
 
     # Level of concern for non-listed dicot seedlings exposed to pesticide X in semi-aquatic areas
+    @timefn
     def LOCndssemi(self):
         # if self.out_nds_loc_semi == '':
         #     if self.out_nds_rq_semi == -1:
@@ -692,6 +725,7 @@ class terrplant(object):
         return self.out_nds_loc_semi
 
     # Risk Quotient for NON-LISTED DICOT seedlings exposed to Pesticide X via SPRAY drift
+    @timefn
     def ndsRQspray(self):
         # if self.out_nds_rq_spray == -1:
         #     try:
@@ -721,6 +755,7 @@ class terrplant(object):
         return self.out_nds_rq_spray
 
     # Level of concern for non-listed dicot seedlings exposed to pesticide X via spray drift
+    @timefn
     def LOCndsspray(self):
         # if self.out_nds_loc_semi == '':
         #     if self.out_nds_rq_spray == -1:
@@ -741,6 +776,7 @@ class terrplant(object):
         return self.out_nds_loc_semi
 
     # Risk Quotient for LISTED DICOT seedlings exposed to Pesticide X in DRY areas
+    @timefn
     def ldsRQdry(self):
         # if self.out_lds_rq_dry == -1:
         #     try:
@@ -770,6 +806,7 @@ class terrplant(object):
         return self.out_lds_rq_dry
 
     # Level of concern for listed dicot seedlings exposed to pesticideX in dry areas
+    @timefn
     def LOCldsdry(self):
         # if self.out_lds_loc_dry == '':
         #     if self.out_lds_rq_dry == -1:
@@ -790,6 +827,7 @@ class terrplant(object):
         return self.out_lds_loc_dry
 
     # Risk Quotient for LISTED DICOT seedlings exposed to Pesticide X in SEMI-AQUATIC areas
+    @timefn
     def ldsRQsemi(self):
         # if self.out_lds_rq_semi == -1:
         #     try:
@@ -819,6 +857,7 @@ class terrplant(object):
         return self.out_lds_rq_semi
 
     # Level of concern for listed dicot seedlings exposed to pesticide X in dry areas
+    @timefn
     def LOCldssemi(self):
         # if self.out_lds_loc_semi == '':
         #     if self.out_lds_rq_semi == -1:
@@ -839,6 +878,7 @@ class terrplant(object):
         return self.out_lds_loc_semi
 
     # Risk Quotient for LISTED DICOT seedlings exposed to Pesticide X via SPRAY drift
+    @timefn
     def ldsRQspray(self):
         # if self.out_lds_rq_spray == -1:
         #     try:
@@ -868,6 +908,7 @@ class terrplant(object):
         return self.out_lds_rq_spray
 
     # Level of concern for listed dicot seedlings exposed to pesticide X via spray drift
+    @timefn
     def LOCldsspray(self):
         # if self.out_lds_loc_spray == '':
         #     if self.out_lds_rq_spray == -1:

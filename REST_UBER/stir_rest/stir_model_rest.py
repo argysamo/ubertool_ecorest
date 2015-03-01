@@ -2,8 +2,22 @@
 
 import pandas as pd
 import logging
+from functools import wraps
+import time
+
+def timefn(fn):
+    @wraps(fn)
+    def measure_time(*args, **kwargs):
+        t1 = time.time()
+        result = fn(*args, **kwargs)
+        t2 = time.time()
+        print("stir_model_rest.py@timefn: " + fn.func_name + " took " + 
+            "{:.6f}".format(t2-t1) + " seconds")
+        return result
+    return measure_time
 
 class stir(object):
+    @timefn
     def __init__(self, run_type, pd_obj, pd_obj_exp):
 
         # Inputs: Assign object attribute variables from the input Pandas DataFrame
@@ -83,7 +97,7 @@ class stir(object):
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
-
+    @timefn
     def run_methods(self):
         try:
             self.CalcSatAirConc() #eq. 1
@@ -109,6 +123,7 @@ class stir(object):
         except TypeError:
             print "Type Error: Your variables are not set correctly."
 
+    @timefn
     def json(self, pd_obj, pd_obj_out, pd_obj_exp):
         """
             Convert DataFrames to JSON, returning a tuple 
@@ -125,6 +140,7 @@ class stir(object):
         return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
 
     #eq. 1 saturated air concentration in mg/m^3
+    @timefn
     def CalcSatAirConc(self):
         #if self.sat_air_conc == -1:
         #    self.vapor_pressure = float(self.vapor_pressure)
@@ -137,6 +153,7 @@ class stir(object):
         return self.sat_air_conc
 
     #eq. 2 Avian inhalation rate
+    @timefn
     def CalcInhRateAvian(self):
         #if self.inh_rate_avian == -1:
         #    self.body_weight_assessed_bird = float(self.body_weight_assessed_bird)
@@ -149,6 +166,7 @@ class stir(object):
         return self.inh_rate_avian
 
     #eq. 3  Maximum avian vapor inhalation dose
+    @timefn
     def CalcVidAvian(self):
         #if self.vid_avian == -1:
         #    self.sat_air_conc = float(self.sat_air_conc)
@@ -162,6 +180,7 @@ class stir(object):
         return self.vid_avian
 
     #eq. 4 Mammalian inhalation rate
+    @timefn
     def CalcInhRateMammal(self):
         #if self.inh_rate_mammal == -1:
         #    self.body_weight_assessed_mammal = float(self.body_weight_assessed_mammal)
@@ -174,6 +193,7 @@ class stir(object):
         return self.inh_rate_mammal
 
     #eq. 5 Maximum mammalian vapor inhalation dose
+    @timefn
     def CalcVidMammal(self):
         #if self.vid_mammal == -1:
         #    self.sat_air_conc = float(self.sat_air_conc) # eq. 1
@@ -187,6 +207,7 @@ class stir(object):
         return self.vid_mammal
 
     #eq. 6 Air column concentration after spray
+    @timefn
     def CalcConcAir(self):
         #if self.air_conc == -1:
         #    self.application_rate = float(self.application_rate)
@@ -203,6 +224,7 @@ class stir(object):
         return self.air_conc
 
     #eq. 7 Avian spray droplet inhalation dose
+    @timefn
     def CalcSidAvian(self):
         #if self.sid_avian == -1:
         #    self.air_conc = float(self.air_conc)
@@ -220,6 +242,7 @@ class stir(object):
         return self.sid_avian
 
     #eq. 8 Mammalian spray droplet inhalation dose
+    @timefn
     def CalcSidMammal(self):
         #if self.sid_mammal == -1:
         #    self.air_conc = float(self.air_conc)
@@ -232,6 +255,7 @@ class stir(object):
         return self.sid_mammal
 
     #eq. 9 Conversion of mammalian LC50 to LD50
+    @timefn
     def CalcConvertMammalInhalationLC50toLD50(self):
         #if self.mammal_inhalation_ld50 == -1:
         #    self.mammal_inhalation_lc50 = float(self.mammal_inhalation_lc50)
@@ -248,6 +272,7 @@ class stir(object):
         return self.mammal_inhalation_ld50
 
     #eq. 10 Adjusted mammalian inhalation LD50
+    @timefn
     def CalcAdjustedMammalInhalationLD50(self):
         #if self.adjusted_mammal_inhalation_ld50 == -1:
         #    self.mammal_inhalation_ld50 = float(self.mammal_inhalation_ld50)
@@ -259,6 +284,7 @@ class stir(object):
         return self.adjusted_mammal_inhalation_ld50
 
     #eq. 11 Estimated avian inhalation LD50
+    @timefn
     def CalcEstimatedAvianInhalationLD50(self):
         #if self.estimated_avian_inhalation_ld50 == -1:
         #    self.avian_oral_ld50 = float(self.avian_oral_ld50)
@@ -270,6 +296,7 @@ class stir(object):
         return self.estimated_avian_inhalation_ld50
 
     #eq. 12 Adjusted avian inhalation LD50
+    @timefn
     def CalcAdjustedAvianInhalationLD50(self):
         #if self.adjusted_avian_inhalation_ld50 == -1:
         #    self.estimated_avian_inhalation_ld50 = float(self.estimated_avian_inhalation_ld50)
@@ -284,6 +311,7 @@ class stir(object):
     # results
     # ----------------------------------------------
     # results #1: Ratio of avian vapor dose to adjusted inhalation LD50
+    @timefn
     def ReturnRatioVidAvian(self):
         #if self.ratio_vid_avian == -1:
         #    self.vid_avian = float(self.vid_avian)
@@ -293,6 +321,7 @@ class stir(object):
         return self.ratio_vid_avian
 
     # results #2: Level of Concern for avian vapor phase risk
+    @timefn
     def ReturnLocVidAvian(self):
         #if self.ratio_vid_avian < 0.1:
         #    self.loc_vid_avian = 'Exposure not Likely Significant'
@@ -306,6 +335,7 @@ class stir(object):
         return self.loc_vid_avian
 
     # results #3: Ratio of avian droplet inhalation dose to adjusted inhalation LD50
+    @timefn
     def ReturnRatioSidAvian(self):
         #if self.ratio_sid_avian == -1:
         #    self.sid_avian = float(self.sid_avian)
@@ -315,6 +345,7 @@ class stir(object):
         return self.ratio_sid_avian
 
     # results #4: Level of Concern for avian droplet inhalation risk
+    @timefn
     def ReturnLocSidAvian(self):
         #if self.ratio_sid_avian < 0.1:
         #    self.loc_sid_avian = 'Exposure not Likely Significant'
@@ -328,6 +359,7 @@ class stir(object):
         return self.loc_sid_avian
 
     # results #5: Ratio of mammalian vapor dose to adjusted inhalation LD50
+    @timefn
     def ReturnRatioVidMammal(self):
         #if self.ratio_vid_mammal == -1:
         #    self.vid_mammal = float(self.vid_mammal)
@@ -337,6 +369,7 @@ class stir(object):
         return self.ratio_vid_mammal
 
     # results #6: Level of Concern for mammalian vapor phase risk
+    @timefn
     def ReturnLocVidMammal(self):
         #if self.ratio_vid_mammal < 0.1:
         #    self.loc_vid_mammal = 'Exposure not Likely Significant'
@@ -350,6 +383,7 @@ class stir(object):
         return self.loc_vid_mammal
 
     # results #7: Ratio of mammalian droplet inhalation dose to adjusted inhalation LD50
+    @timefn
     def ReturnRatioSidMammal(self):
         #if self.ratio_sid_mammal == -1:
         #    self.sid_mammal = float(self.sid_mammal)
@@ -359,6 +393,7 @@ class stir(object):
         return self.ratio_sid_mammal
 
     # results #8: Level of Concern for mammaliam droplet inhalation risk
+    @timefn
     def ReturnLocSidMammal(self):
         #if self.ratio_sid_mammal < 0.1:
         #    self.loc_sid_mammal = 'Exposure not Likely Significant'
