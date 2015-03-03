@@ -2,9 +2,24 @@
 import pandas as pd
 import numpy as np
 import logging
+from functools import wraps
+import time
+
+def timefn(fn):
+    @wraps(fn)
+    def measure_time(*args, **kwargs):
+        t1 = time.time()
+        result = fn(*args, **kwargs)
+        t2 = time.time()
+        print("trex2_model_rest.py@timefn: " + fn.func_name + " took " + 
+            "{:.6f}".format(t2-t1) + " seconds")
+        return result
+    return measure_time
 
 class trex2(object):
+    @timefn
     def __init__(self, run_type, pd_obj, pd_obj_exp):
+        logging.info("************** trex back end **********************")
         # run_type can be single, batch or qaqc
         self.run_type = run_type
 
@@ -71,27 +86,27 @@ class trex2(object):
         
         # Outputs: Assign object attribute variables to Pandas Series
         #Table5
-        #self.sa_bird_1 = pd.Series(name="sa_bird_1")
-        #self.sa_bird_2 = pd.Series(name="sa_bird_2")
-        #self.sc_bird = pd.Series(name="sc_bird")
-        #self.sa_mamm_1 = pd.Series(name="sa_mamm_1")
-        #self.sa_mamm_2 = pd.Series(name="sa_mamm_2")
-        #self.sc_mamm = pd.Series(name="sc_mamm")
-        #
-        #self.sa_bird_1 = pd.Series(name="sa_bird_1")
-        #self.sa_bird_2 = pd.Series(name="sa_bird_2")
-        #self.sc_bird = pd.Series(name="sc_bird")
-        #self.sa_mamm_1 = pd.Series(name="sa_mamm_1")
-        #self.sa_mamm_2 = pd.Series(name="sa_mamm_2")
-        #self.sc_mamm = pd.Series(name="sc_mamm")
-        #
-        #self.sa_bird_1 = pd.Series(name="sa_bird_1")
-        #self.sa_bird_2 = pd.Series(name="sa_bird_2")
-        #self.sc_bird = pd.Series(name="sc_bird")
-        #self.sa_mamm_1 = pd.Series(name="sa_mamm_1")
-        #self.sa_mamm_2 = pd.Series(name="sa_mamm_2")
-        #self.sc_mamm = pd.Series(name="sc_mamm")
-        #
+        self.sa_bird_1_s = pd.Series(name="sa_bird_1_s")
+        self.sa_bird_2_s = pd.Series(name="sa_bird_2_s")
+        self.sc_bird_s = pd.Series(name="sc_bird_s")
+        self.sa_mamm_1_s = pd.Series(name="sa_mamm_1_s")
+        self.sa_mamm_2_s = pd.Series(name="sa_mamm_2_s")
+        self.sc_mamm_s = pd.Series(name="sc_mamm_s")
+
+        self.sa_bird_1_m = pd.Series(name="sa_bird_1_m")
+        self.sa_bird_2_m = pd.Series(name="sa_bird_2_m")
+        self.sc_bird_m = pd.Series(name="sc_bird_m")
+        self.sa_mamm_1_m = pd.Series(name="sa_mamm_1_m")
+        self.sa_mamm_2_m = pd.Series(name="sa_mamm_2_m")
+        self.sc_mamm_m = pd.Series(name="sc_mamm_m")
+
+        self.sa_bird_1_l = pd.Series(name="sa_bird_1_l")
+        self.sa_bird_2_l = pd.Series(name="sa_bird_2_l")
+        self.sc_bird_l = pd.Series(name="sc_bird_l")
+        self.sa_mamm_1_l = pd.Series(name="sa_mamm_1_l")
+        self.sa_mamm_2_l = pd.Series(name="sa_mamm_2_l")
+        self.sc_mamm_l = pd.Series(name="sc_mamm_l")
+        
         #Table 6
         self.EEC_diet_SG = pd.Series(name="EEC_diet_SG")
         self.EEC_diet_TG = pd.Series(name="EEC_diet_TG")
@@ -457,6 +472,7 @@ class trex2(object):
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
 
+    @timefn
     def json(self, pd_obj, pd_obj_out, pd_obj_exp):
         """
             Convert DataFrames to JSON, returning a tuple 
@@ -473,23 +489,26 @@ class trex2(object):
         return pd_obj_json, pd_obj_out_json, pd_obj_exp_json
 
     # Begin model methods
+    @timefn
     def run_methods(self):
+        logging.info("run_methods")
         #Table5
-        self.sa_bird_1_s = self.sa_bird_1(self.ar_lb, self.a_i, self.den, self.at_bird, self.fi_bird, 0.1, self.ld50_bird, self.aw_bird_sm, self.tw_bird_ld50, self.x, 0.02) 
+        logging.info("table 5")
+        self.sa_bird_1_s = self.sa_bird_1(0.1, 0.02, self.aw_bird_sm, self.tw_bird_ld50) 
         self.sa_bird_2_s = self.sa_bird_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_bird, self.ld50_bird, self.aw_bird_sm, self.tw_bird_ld50, self.x, 0.02) 
         self.sc_bird_s = self.sc_bird(self.ar_lb, self.a_i, self.den, self.NOAEC_bird)
         self.sa_mamm_1_s = self.sa_mamm_1(self.ar_lb, self.a_i, self.den, self.at_mamm, self.fi_mamm, 0.1, self.ld50_mamm, self.aw_mamm_sm, self.tw_mamm, 0.015)
         self.sa_mamm_2_s = self.sa_mamm_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_mamm, self.ld50_mamm, self.aw_mamm_sm, self.tw_mamm, 0.015)
         self.sc_mamm_s = self.sc_mamm(self.ar_lb,self.a_i, self.den, self.NOAEL_mamm, self.aw_mamm_sm, self.fi_mamm, 0.1, self.tw_mamm, self.ANOAEL_mamm, 0.015)
 
-        self.sa_bird_1_m = self.sa_bird_1(self.ar_lb, self.a_i, self.den, self.at_bird, self.fi_bird, 0.1, self.ld50_bird, self.aw_bird_md, self.tw_bird_ld50, self.x, 0.1) 
+        self.sa_bird_1_m = self.sa_bird_1(0.1, 0.1, self.aw_bird_md, self.tw_bird_ld50) 
         self.sa_bird_2_m = self.sa_bird_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_bird, self.ld50_bird, self.aw_bird_md, self.tw_bird_ld50, self.x, 0.1) 
         self.sc_bird_m = self.sc_bird(self.ar_lb, self.a_i, self.den, self.NOAEC_bird)
         self.sa_mamm_1_m = self.sa_mamm_1(self.ar_lb, self.a_i, self.den, self.at_mamm, self.fi_mamm, 0.1, self.ld50_mamm, self.aw_mamm_md, self.tw_mamm, 0.035)
         self.sa_mamm_2_m = self.sa_mamm_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_mamm, self.ld50_mamm, self.aw_mamm_md, self.tw_mamm, 0.035)
         self.sc_mamm_m = self.sc_mamm(self.ar_lb, self.a_i, self.den, self.NOAEL_mamm, self.aw_mamm_md, self.fi_mamm, 0.1, self.tw_mamm, self.ANOAEL_mamm, 0.035)
 
-        self.sa_bird_1_l = self.sa_bird_1(self.ar_lb, self.a_i, self.den, self.at_bird, self.fi_bird, 0.1, self.ld50_bird, self.aw_bird_lg, self.tw_bird_ld50, self.x, 1.0) 
+        self.sa_bird_1_l = self.sa_bird_1(0.1, 1.0, self.aw_bird_lg, self.tw_bird_ld50) 
         self.sa_bird_2_l = self.sa_bird_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_bird, self.ld50_bird, self.aw_bird_lg, self.tw_bird_ld50, self.x, 1.0) 
         self.sc_bird_l = self.sc_bird(self.ar_lb, self.a_i, self.den, self.NOAEC_bird)
         self.sa_mamm_1_l = self.sa_mamm_1(self.ar_lb, self.a_i, self.den, self.at_mamm, self.fi_mamm, 0.1, self.ld50_mamm, self.aw_mamm_lg, self.tw_mamm, 1)
@@ -497,6 +516,7 @@ class trex2(object):
         self.sc_mamm_l = self.sc_mamm(self.ar_lb, self.a_i, self.den, self.NOAEL_mamm, self.aw_mamm_lg, self.fi_mamm, 0.1, self.tw_mamm, self.ANOAEL_mamm, 1)
 
         #Table 6
+        logging.info("table 6")
         self.EEC_diet_SG = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.EEC_diet_TG = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 110, self.h_l, self.day_out)
         self.EEC_diet_BP = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 135, self.h_l, self.day_out)
@@ -504,6 +524,7 @@ class trex2(object):
         self.EEC_diet_AR = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 94, self.h_l, self.day_out)
 
         #Table 7
+        logging.info("table 7")
         self.EEC_dose_bird_SG_sm = self.EEC_dose_bird(self.EEC_diet, self.aw_bird_sm, self.fi_bird, 0.9, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.EEC_dose_bird_SG_md = self.EEC_dose_bird(self.EEC_diet, self.aw_bird_md, self.fi_bird, 0.9, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.EEC_dose_bird_SG_lg = self.EEC_dose_bird(self.EEC_diet, self.aw_bird_lg, self.fi_bird, 0.9, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
@@ -544,6 +565,7 @@ class trex2(object):
         self.ARQ_bird_SE_lg = self.ARQ_dose_bird(self.EEC_dose_bird, self.EEC_diet, self.aw_bird_lg, self.fi_bird, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x, 0.1, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 15, self.h_l, self.day_out)
 
         #Table 8
+        logging.info("table 8")
         self.ARQ_diet_bird_SG_A = self.ARQ_diet_bird(self.EEC_diet, self.lc50_bird, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.ARQ_diet_bird_SG_C = self.CRQ_diet_bird(self.EEC_diet, self.NOAEC_bird, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l ,self.day_out)
         self.ARQ_diet_bird_TG_A = self.ARQ_diet_bird(self.EEC_diet, self.lc50_bird, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 110, self.h_l ,self.day_out)
@@ -556,6 +578,7 @@ class trex2(object):
         self.ARQ_diet_bird_AR_C = self.CRQ_diet_bird(self.EEC_diet, self.NOAEC_bird, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 94, self.h_l, self.day_out)
                       
         #Table 9
+        logging.info("table 9")
         self.EEC_dose_mamm_SG_sm = self.EEC_dose_mamm(self.EEC_diet, self.aw_mamm_sm, self.fi_mamm, 0.8, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.EEC_dose_mamm_SG_md = self.EEC_dose_mamm(self.EEC_diet, self.aw_mamm_md, self.fi_mamm, 0.8, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.EEC_dose_mamm_SG_lg = self.EEC_dose_mamm(self.EEC_diet, self.aw_mamm_lg, self.fi_mamm, 0.8, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
@@ -576,6 +599,7 @@ class trex2(object):
         self.EEC_dose_mamm_SE_lg = self.EEC_dose_mamm(self.EEC_diet, self.aw_mamm_lg, self.fi_mamm, 0.1, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 15, self.h_l, self.day_out)
 
         #Table 10
+        logging.info("table 10")
         self.ARQ_dose_mamm_SG_sm = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, self.aw_mamm_sm, self.fi_mamm, self.ld50_mamm, self.tw_mamm, 0.8, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.CRQ_dose_mamm_SG_sm = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, self.NOAEL_mamm, self.aw_mamm_sm, self.fi_mamm, self.tw_mamm, 0.8, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
         self.ARQ_dose_mamm_SG_md = self.ARQ_dose_mamm(self.EEC_dose_mamm, self.EEC_diet, self.at_mamm, self.aw_mamm_md, self.fi_mamm, self.ld50_mamm, self.tw_mamm, 0.8, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
@@ -619,6 +643,7 @@ class trex2(object):
         self.CRQ_dose_mamm_SE_lg = self.CRQ_dose_mamm(self.EEC_diet, self.EEC_dose_mamm, self.ANOAEL_mamm, self.NOAEL_mamm, self.aw_mamm_lg, self.fi_mamm, self.tw_mamm, 0.1, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 15, self.h_l, self.day_out)
 
         #table 11
+        logging.info("table 11")
         if self.lc50_mamm != 'N/A':
             self.ARQ_diet_mamm_SG = self.ARQ_diet_mamm(self.EEC_diet, self.lc50_mamm, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
             self.ARQ_diet_mamm_TG = self.ARQ_diet_mamm(self.EEC_diet, self.lc50_mamm, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 110, self.h_l, self.day_out)
@@ -639,6 +664,7 @@ class trex2(object):
         self.CRQ_diet_mamm_AR = self.CRQ_diet_mamm(self.EEC_diet, self.NOAEC_mamm, self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 94, self.h_l, self.day_out)
   
         #Table12
+        logging.info("table 12")
         self.LD50_rg_bird_sm = self.LD50_rg_bird(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.r_s, self.b_w, self.aw_bird_sm, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
         self.LD50_rg_mamm_sm = self.LD50_rg_mamm(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.r_s, self.b_w, self.aw_mamm_sm, self.at_mamm, self.ld50_mamm, self.tw_mamm)
         self.LD50_rg_bird_md = self.LD50_rg_bird(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.r_s, self.b_w, self.aw_bird_md, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
@@ -647,6 +673,7 @@ class trex2(object):
         self.LD50_rg_mamm_lg = self.LD50_rg_mamm(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.r_s, self.b_w, self.aw_mamm_lg, self.at_mamm, self.ld50_mamm, self.tw_mamm)
 
         #Table13
+        logging.info("table 13")
         self.LD50_rl_bird_sm = self.LD50_rl_bird(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.b_w, self.aw_bird_sm, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
         self.LD50_rl_mamm_sm = self.LD50_rl_mamm(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.b_w, self.aw_mamm_sm, self.at_mamm, self.ld50_mamm, self.tw_mamm)
         self.LD50_rl_bird_md = self.LD50_rl_bird(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.b_w, self.aw_bird_md, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
@@ -655,6 +682,7 @@ class trex2(object):
         self.LD50_rl_mamm_lg = self.LD50_rl_mamm(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.b_w, self.aw_mamm_lg, self.at_mamm, self.ld50_mamm, self.tw_mamm)
 
         #Table14
+        logging.info("table 14")
         self.LD50_bg_bird_sm = self.LD50_bg_bird(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.aw_bird_sm, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
         self.LD50_bg_mamm_sm = self.LD50_bg_mamm(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.aw_mamm_sm, self.at_mamm, self.ld50_mamm, self.tw_mamm)
         self.LD50_bg_bird_md = self.LD50_bg_bird(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.aw_bird_md, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
@@ -663,6 +691,7 @@ class trex2(object):
         self.LD50_bg_mamm_lg = self.LD50_bg_mamm(self.Application_type, self.ar_lb, self.a_i, self.p_i, self.aw_mamm_lg, self.at_mamm, self.ld50_mamm, self.tw_mamm)
 
         #Table15
+        logging.info("table 15")
         self.LD50_bl_bird_sm = self.LD50_bl_bird(self.Application_type, self.ar_lb, self.a_i, self.aw_bird_sm, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
         self.LD50_bl_mamm_sm = self.LD50_bl_mamm(self.Application_type, self.ar_lb, self.a_i, self.aw_mamm_sm, self.at_mamm, self.ld50_mamm, self.tw_mamm)
         self.LD50_bl_bird_md = self.LD50_bl_bird(self.Application_type, self.ar_lb, self.a_i, self.aw_bird_md, self.at_bird, self.ld50_bird, self.tw_bird_ld50, self.x)
@@ -672,43 +701,65 @@ class trex2(object):
 
 
     #food intake for birds
+    @timefn
     def fi_bird(self, aw_bird, mf_w_bird):  
         return (0.648 * (aw_bird**0.651))/(1-mf_w_bird)
 
     # food intake for mammals
+    @timefn
     def fi_mamm(self, aw_mamm, mf_w_mamm):
         return (0.621 * (aw_mamm**0.564))/(1-mf_w_mamm)
 
     #Acute adjusted toxicity value for birds
+    @timefn
     def at_bird(self, ld50_bird, aw_bird, tw_bird, x):
-        return (ld50_bird) * ((aw_bird/tw_bird)**(x-1))
+        logging.info("at_bird")
+        logging.info(ld50_bird)
+        logging.info(aw_bird)
+        logging.info(tw_bird)
+        logging.info(x)
+        at_bird_return = ld50_bird * (aw_bird/tw_bird)**(x-1)
+        return (at_bird_return)
 
     # Acute adjusted toxicity value for mammals
+    @timefn
     def at_mamm(self, ld50_mamm, aw_mamm, tw_mamm):
         return (ld50_mamm) * ((tw_mamm/aw_mamm)**(0.25))
 
     # Adjusted chronic toxicity (NOAEL) value for mammals
+    @timefn
     def ANOAEL_mamm(self, NOAEL_mamm, aw_mamm, tw_mamm):
         return (NOAEL_mamm) * ((tw_mamm/aw_mamm)**(0.25))
 
     #Dietary based EECs
     #Initial concentration
+    @timefn
     def C_0(self, a_r, a_i, para):       
         return (a_r*a_i*para)
 
     #Concentration over time
+    @timefn
     def C_t(self, C_ini, h_l):         
         return (C_ini*np.exp(-(np.log(2)/h_l)*1))
         
     # concentration over time if application rate or time interval is variable
+    #returns max daily concentration, can be multiple applications
     #Dietary based EECs
+    @timefn
     def EEC_diet(self, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         #new in trex1.5.1
         logging.info("EEC_diet")
-        logging.info(noa)
+        logging.info("noa")
         logging.info(noa.dtype)
+        logging.info(noa)
+        logging.info(noa.any())
+        logging.info("a_r")
+        logging.info(a_r)
         if noa.any() == 1:
-            C_temp = C_0(a_r[0], a_i, para)
+            #get initial concentration
+            C_temp = C_0(a_r, a_i, para)
+            logging.info("C_temp")
+            logging.info(C_temp)
             return np.array([C_temp])
         else:
             C_temp = np.ones((371,1)) #empty array to hold the concentrations over days       
@@ -729,14 +780,27 @@ class trex2(object):
                         dayt = dayt + 1        
                     else :
                         C_temp[i]=C_t(C_temp[i-1], h_l) 
-            return (max(C_temp))
+            logging.info("C_temp")
+            logging.info(C_temp)
+            max_c_return = max(C_temp)
+            logging.info("max_c_return")
+            logging.info(max_c_return)
+            return (max_c_return)
 
 
     # Dose based EECs for birds
+    @timefn
     def EEC_dose_bird(self, EEC_diet, aw_bird, fi_bird, mf_w_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
+        logging.info("EEC_dose_bird")
         fi_bird = fi_bird(aw_bird, mf_w_bird)
-        EEC_diet=EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)
-        return (EEC_diet*fi_bird/aw_bird)
+        EEC_diet = EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)
+        logging.info(EEC_diet)
+        logging.info(fi_bird)
+        logging.info(aw_bird)
+        EEC_out = EEC_diet * fi_bird / aw_bird
+        logging.info("EEC_out")
+        logging.info(EEC_out)
+        return (EEC_out)
 
     # Dose based EECs for granivores birds
 
@@ -757,6 +821,7 @@ class trex2(object):
     #         return(0)
             
     # Dose based EECs for mammals
+    @timefn
     def EEC_dose_mamm(self, EEC_diet, aw_mamm, fi_mamm, mf_w_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_diet=EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)
         fi_mamm = fi_mamm(aw_mamm, mf_w_mamm)
@@ -774,6 +839,7 @@ class trex2(object):
     #         return(0)
             
     # Acute dose-based risk quotients for birds
+    @timefn
     def ARQ_dose_bird(self, EEC_dose_bird, EEC_diet, aw_bird, fi_bird, at_bird, ld50_bird, tw_bird, x, mf_w_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_dose_bird = EEC_dose_bird(EEC_diet, aw_bird, fi_bird, mf_w_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out)
         at_bird = at_bird(ld50_bird,aw_bird,tw_bird,x)
@@ -790,6 +856,7 @@ class trex2(object):
     #         return (0)
         
     # Acute dose-based risk quotients for mammals
+    @timefn
     def ARQ_dose_mamm(self, EEC_dose_mamm, EEC_diet, at_mamm, aw_mamm, fi_mamm, ld50_mamm, tw_mamm, mf_w_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_dose_mamm = EEC_dose_mamm(EEC_diet, aw_mamm, fi_mamm, mf_w_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out)
         at_mamm = at_mamm(ld50_mamm,aw_mamm,tw_mamm)
@@ -805,26 +872,31 @@ class trex2(object):
     #         return(0)
             
     # Acute dietary-based risk quotients for birds
+    @timefn
     def ARQ_diet_bird(self, EEC_diet, lc50_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_diet=EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)         
         return (EEC_diet/lc50_bird)
 
     # Acute dietary-based risk quotients for mammals
+    @timefn
     def ARQ_diet_mamm(self, EEC_diet, lc50_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_diet=EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)    
         return (EEC_diet/lc50_mamm)
 
     # Chronic dietary-based risk quotients for birds
+    @timefn
     def CRQ_diet_bird(self, EEC_diet, NOAEC_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_diet=EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)           
         return (EEC_diet/NOAEC_bird)
 
     # Chronic dietary-based risk quotients for mammals
+    @timefn
     def CRQ_diet_mamm(self, EEC_diet, NOAEC_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         EEC_diet=EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)       
         return (EEC_diet/NOAEC_mamm)
 
     # Chronic dose-based risk quotients for mammals
+    @timefn
     def CRQ_dose_mamm(self, EEC_diet, EEC_dose_mamm, ANOAEL_mamm, NOAEL_mamm, aw_mamm, fi_mamm, tw_mamm, mf_w_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         ANOAEL_mamm=ANOAEL_mamm(NOAEL_mamm,aw_mamm,tw_mamm)
         EEC_dose_mamm = EEC_dose_mamm(EEC_diet, aw_mamm, fi_mamm, mf_w_mamm, C_0, C_t, noa, a_r, a_i, para, h_l, day_out)     
@@ -840,6 +912,7 @@ class trex2(object):
     #         return (0)
             
     # LD50ft-2 for row/band/in-furrow granular birds
+    @timefn
     def LD50_rg_bird(self, Application_type, a_r, a_i, p_i, r_s, b_w, aw_bird, at_bird, ld50_bird, tw_bird, x): 
         if Application_type=='Row/Band/In-furrow-Granular':     
             at_bird=at_bird(ld50_bird,aw_bird,tw_bird,x)
@@ -857,6 +930,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for row/band/in-furrow liquid birds
+    @timefn
     def LD50_rl_bird(self, Application_type, a_r, a_i, p_i, b_w, aw_bird, at_bird, ld50_bird, tw_bird, x):
         if Application_type=='Row/Band/In-furrow-Liquid':    
             at_bird=at_bird(ld50_bird,aw_bird,tw_bird,x)    
@@ -866,6 +940,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for row/band/in-furrow granular mammals
+    @timefn
     def LD50_rg_mamm(self, Application_type, a_r, a_i, p_i, r_s, b_w, aw_mamm, at_mamm, ld50_mamm, tw_mamm):
         if Application_type=='Row/Band/In-furrow-Granular':  
            # a_r = max(ar_lb)  
@@ -877,6 +952,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for row/band/in-furrow liquid mammals
+    @timefn
     def LD50_rl_mamm(self, Application_type, a_r, a_i, p_i, b_w, aw_mamm, at_mamm, ld50_mamm, tw_mamm):
         if Application_type=='Row/Band/In-furrow-Liquid':    
             at_mamm=at_mamm(ld50_mamm,aw_mamm,tw_mamm)    
@@ -886,6 +962,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for broadcast granular birds
+    @timefn
     def LD50_bg_bird(self, Application_type, a_r, a_i, p_i, aw_bird, at_bird, ld50_bird, tw_bird, x):
         if Application_type=='Broadcast-Granular':    
             at_bird=at_bird(ld50_bird,aw_bird,tw_bird,x)
@@ -895,6 +972,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for broadcast liquid birds
+    @timefn
     def LD50_bl_bird(self, Application_type, a_r, a_i, aw_bird, at_bird, ld50_bird, tw_bird, x):
         if Application_type=='Broadcast-Liquid':   
             at_bird=at_bird(ld50_bird,aw_bird,tw_bird,x)
@@ -905,6 +983,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for broadcast granular mammals
+    @timefn
     def LD50_bg_mamm(self, Application_type, a_r, a_i, p_i, aw_mamm, at_mamm, ld50_mamm, tw_mamm):
         if Application_type=='Broadcast-Granular':    
             at_mamm=at_mamm(ld50_mamm,aw_mamm,tw_mamm) 
@@ -914,6 +993,7 @@ class trex2(object):
             return(0)
             
     # LD50ft-2 for broadcast liquid mammals
+    @timefn
     def LD50_bl_mamm(self, Application_type, a_r, a_i, aw_mamm, at_mamm, ld50_mamm, tw_mamm):
         if Application_type=='Broadcast-Liquid':    
             at_mamm=at_mamm(ld50_mamm,aw_mamm,tw_mamm)
@@ -924,15 +1004,34 @@ class trex2(object):
             return(0)
             
     # Seed treatment acute RQ for birds method 1
-    def sa_bird_1(self, a_r_p, a_i, den, at_bird, fi_bird, mf_w_bird, ld50_bird, aw_bird, tw_bird, x, nagy_bird_coef):
-        at_bird=at_bird(ld50_bird,aw_bird,tw_bird,x)    
-        # fi_bird=fi_bird(20, 0.1)    
-        fi_bird = fi_bird(aw_bird, mf_w_bird)
-        m_s_a_r=((a_r_p*a_i)/128)*den*10000    #maximum seed application rate=application rate*10000
-        nagy_bird=fi_bird*0.001*m_s_a_r/nagy_bird_coef
-        return (nagy_bird/at_bird)      
+    @timefn 
+    def sa_bird_1(self, mf_w_bird, nagy_bird_coef, aw_bird, tw_bird):
+        #logging
+        logging.info("sa_bird_1")
+        logging.info(self.ld50_bird)
+        logging.info(aw_bird)
+        logging.info(tw_bird)
+        logging.info(self.x) 
+
+        #setup panda series
+        at_bird_temp = pd.Series(name="at_bird_temp") 
+        fi_bird_temp = pd.Series(name="fi_bird_temp")
+        m_s_a_r_temp = pd.Series(name="m_s_a_r_temp")
+        nagy_bird_temp = pd.Series(name="nagy_bird_temp")
+        sa_bird_1_return = pd.Series(name="sa_bird_1_return")
+
+        #run calculations
+        at_bird_temp = self.at_bird(self.ld50_bird, aw_bird, tw_bird, self.x)       
+        fi_bird_temp = fi_bird(aw_bird, mf_w_bird)
+        #maximum seed application rate=application rate*10000
+        m_s_a_r_temp = ((self.a_r_lb * self.a_i)/128) * self.den * 10000
+        nagy_bird_temp = fi_bird_temp * 0.001 * m_s_a_r_temp / nagy_bird_coef
+        sa_bird_1_return = nagy_bird_temp / at_bird_temp
+        return (sa_bird_1_return)      
 
     # Seed treatment acute RQ for birds method 2
+    #self.sa_bird_2_s = self.sa_bird_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_bird, self.ld50_bird, self.aw_bird_sm, self.tw_bird_ld50, self.x, 0.02) 
+    @timefn
     def sa_bird_2(self, a_r_p, a_i, den, m_s_r_p, at_bird, ld50_bird, aw_bird, tw_bird, x, nagy_bird_coef):
         at_bird=at_bird(ld50_bird,aw_bird,tw_bird,x)    
         m_a_r=(m_s_r_p*((a_i*a_r_p)/128)*den)/100    #maximum application rate
@@ -940,11 +1039,13 @@ class trex2(object):
         return (av_ai/(at_bird*nagy_bird_coef))     
         
     # Seed treatment chronic RQ for birds
+    @timefn
     def sc_bird(self, a_r_p, a_i, den, NOAEC_bird):    
         m_s_a_r=((a_r_p*a_i)/128)*den*10000    #maximum seed application rate=application rate*10000
         return (m_s_a_r/NOAEC_bird)       
         
     # Seed treatment acute RQ for mammals method 1
+    @timefn
     def sa_mamm_1(self, a_r_p, a_i, den, at_mamm, fi_mamm, mf_w_bird, ld50_mamm, aw_mamm, tw_mamm, nagy_mamm_coef):
         at_mamm=at_mamm(ld50_mamm,aw_mamm,tw_mamm)     
         fi_mamm=fi_mamm(aw_mamm, mf_w_bird)    
@@ -953,6 +1054,7 @@ class trex2(object):
         return (nagy_mamm/at_mamm)       
         
     # Seed treatment acute RQ for mammals method 2
+    @timefn
     def sa_mamm_2(self, a_r_p, a_i, den, m_s_r_p, at_mamm, ld50_mamm, aw_mamm, tw_mamm, nagy_mamm_coef):
         at_mamm=at_mamm(ld50_mamm,aw_mamm,tw_mamm)
         m_a_r=(m_s_r_p*((a_r_p*a_i)/128)*den)/100    #maximum application rate
@@ -960,6 +1062,7 @@ class trex2(object):
         return (av_ai/(at_mamm*nagy_mamm_coef))     
           
     # Seed treatment chronic RQ for mammals
+    @timefn
     def sc_mamm(self, a_r_p, a_i, den, NOAEL_mamm, aw_mamm, fi_mamm, mf_w_bird, tw_mamm, ANOAEL_mamm, nagy_mamm_coef):
         ANOAEL_mamm = ANOAEL_mamm(NOAEL_mamm, aw_mamm, tw_mamm)
         fi_mamm=fi_mamm(aw_mamm, mf_w_bird)    

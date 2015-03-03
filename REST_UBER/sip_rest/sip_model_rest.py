@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import numpy as np
 import pandas as pd
 import logging
 from functools import wraps
@@ -11,6 +11,8 @@ def timefn(fn):
         t1 = time.time()
         result = fn(*args, **kwargs)
         t2 = time.time()
+        logging.info(t1)
+        logging.info(t2)
         print("sip_model_rest.py@timefn: " + fn.func_name + " took " + 
             "{:.6f}".format(t2-t1) + " seconds")
         return result
