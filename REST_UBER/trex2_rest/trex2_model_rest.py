@@ -494,7 +494,7 @@ class trex2(object):
         logging.info("run_methods")
         #Table5
         logging.info("table 5")
-        self.sa_bird_1_s = self.sa_bird_1(0.1, 0.02, self.aw_bird_sm, self.tw_bird_ld50) 
+        self.sa_bird_1_s = self.sa_bird_1(0.1, 0.02, self.aw_bird_sm, self.tw_bird_ld50)
         self.sa_bird_2_s = self.sa_bird_2(self.ar_lb, self.a_i, self.den, self.m_s_r_p, self.at_bird, self.ld50_bird, self.aw_bird_sm, self.tw_bird_ld50, self.x, 0.02) 
         self.sc_bird_s = self.sc_bird(self.ar_lb, self.a_i, self.den, self.NOAEC_bird)
         self.sa_mamm_1_s = self.sa_mamm_1(self.ar_lb, self.a_i, self.den, self.at_mamm, self.fi_mamm, 0.1, self.ld50_mamm, self.aw_mamm_sm, self.tw_mamm, 0.015)
@@ -790,14 +790,14 @@ class trex2(object):
 
     # Dose based EECs for birds
     @timefn
-    def EEC_dose_bird(self, EEC_diet, aw_bird, fi_bird, mf_w_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
+    def EEC_dose_bird(self, EEC_diet, aw_bird, mf_w_bird, C_0, C_t, noa, a_r, a_i, para, h_l, day_out):
         logging.info("EEC_dose_bird")
-        fi_bird = fi_bird(aw_bird, mf_w_bird)
+        fi_bird_calc = fi_bird(aw_bird, mf_w_bird)
         EEC_diet = EEC_diet(C_0, C_t, noa, a_r, a_i, para, h_l, day_out)
         logging.info(EEC_diet)
-        logging.info(fi_bird)
+        logging.info(fi_bird_calc)
         logging.info(aw_bird)
-        EEC_out = EEC_diet * fi_bird / aw_bird
+        EEC_out = EEC_diet * fi_bird_calc / aw_bird
         logging.info("EEC_out")
         logging.info(EEC_out)
         return (EEC_out)
@@ -1004,7 +1004,7 @@ class trex2(object):
             return(0)
             
     # Seed treatment acute RQ for birds method 1
-    @timefn 
+    #@timefn
     def sa_bird_1(self, mf_w_bird, nagy_bird_coef, aw_bird, tw_bird):
         #logging
         logging.info("sa_bird_1")
@@ -1022,9 +1022,9 @@ class trex2(object):
 
         #run calculations
         at_bird_temp = self.at_bird(self.ld50_bird, aw_bird, tw_bird, self.x)       
-        fi_bird_temp = fi_bird(aw_bird, mf_w_bird)
-        #maximum seed application rate=application rate*10000
-        m_s_a_r_temp = ((self.a_r_lb * self.a_i)/128) * self.den * 10000
+        fi_bird_temp = self.fi_bird(aw_bird, mf_w_bird)
+        # maximum seed application rate=application rate*10000
+        m_s_a_r_temp = ((self.ar_lb * self.a_i)/128) * self.den * 10000
         nagy_bird_temp = fi_bird_temp * 0.001 * m_s_a_r_temp / nagy_bird_coef
         sa_bird_1_return = nagy_bird_temp / at_bird_temp
         return (sa_bird_1_return)      
