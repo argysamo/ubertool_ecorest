@@ -28,7 +28,7 @@ class trex2(object):
         self.use = pd_obj['use']
         self.formu_name = pd_obj['formu_name']
         self.a_i = pd_obj['a_i']
-        self.a_i = self.a_i / 100 # change from percentage to proportion
+        self.a_i = self.a_i / 100  # change from percentage to proportion
         self.Application_type = pd_obj['Application_type']
         self.seed_treatment_formulation_name = pd_obj['seed_treatment_formulation_name']
         self.seed_crop = pd_obj['seed_crop']
@@ -39,13 +39,12 @@ class trex2(object):
         self.p_i = pd_obj['p_i']
         self.p_i = self.p_i / 100 # change from percentage to proportion
         self.den = pd_obj['den']
-        self.h_l = pd_obj['h_l']
-        self.noa = pd_obj['noa']
+        self.h_l = pd_obj['h_l']  #half-life
+        self.noa = pd_obj['noa']  #number of applications
 
-        self.rate_out = [] # have to build here
-        self.day_out = [] # have to build here
-        self.nappdays = int(self.noa)
-        for i in range(self.nappdays):
+        self.rate_out = [] # application rates for each application day (needs to be built)
+        self.day_out = [] # day numbers of the applications (needs to be built)
+        for i in range(self.noa):
            j=i+1
            #rate_temp = request.POST.get('rate'+str(j))
            rate_temp = getattr(pd_obj, 'rate' + str(j))
@@ -54,7 +53,22 @@ class trex2(object):
            day_temp = getattr(pd_obj, 'day' + str(j))
            self.day_out.append(day_temp) 
        
-        self.ar_lb = self.rate_out[0] #?
+        #self.ar_lb = self.rate_out[0] #?
+        self.first_app_lb = self.rate_out[0]
+
+        #initial concentrations for different food types
+        self.C_0_sg = self.first_app_lb * self.a_i * 240.  #short grass
+        self.C_0_tg = self.first_app_lb * self.a_i * 110.  #tall grass
+        self.C_0_blp = self.first_app_lb * self.a_i * 135.  #broad-leafed plants
+        self.C_0_fp = self.first_app_lb * self.a_i * 15.  #fruits/pods
+        self.C_0_arthro = self.first_app_lb * self.a_i * 94.  #arthropods
+
+        #mean concentration estimate based on first application rate
+        self.C_mean_sg = self.first_app_lb * self.a_i * 85.  #short grass
+        self.C_mean_tg = self.first_app_lb * self.a_i * 36.  #tall grass
+        self.C_mean_blp = self.first_app_lb * self.a_i * 45.  #broad-leafed plants
+        self.C_mean_fp = self.first_app_lb * self.a_i * 7.  #fruits/pods
+        self.C_mean_arthro = self.first_app_lb * self.a_i * 65.  #arthropods
 
         self.ld50_bird = pd_obj['ld50_bird']
         self.lc50_bird = pd_obj['lc50_bird']
@@ -492,6 +506,8 @@ class trex2(object):
     @timefn
     def run_methods(self):
         logging.info("run_methods")
+        #build time series for each type
+
         #Table5
         logging.info("table 5")
         self.sa_bird_1_s = self.sa_bird_1(0.1, 0.02, self.aw_bird_sm, self.tw_bird_ld50)
@@ -517,11 +533,11 @@ class trex2(object):
 
         #Table 6
         logging.info("table 6")
-        self.EEC_diet_SG = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
-        self.EEC_diet_TG = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 110, self.h_l, self.day_out)
-        self.EEC_diet_BP = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 135, self.h_l, self.day_out)
-        self.EEC_diet_FR = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 15, self.h_l, self.day_out)
-        self.EEC_diet_AR = self.EEC_diet(self.C_0, self.C_t, self.noa, self.ar_lb, self.a_i, 94, self.h_l, self.day_out)
+        self.EEC_diet_SG = self.EEC_diet(self.C_0_sg, self.C_t_sg, self.noa, self.ar_lb, self.a_i, 240, self.h_l, self.day_out)
+        self.EEC_diet_TG = self.EEC_diet(self.C_0_tg, self.C_t_tg, self.noa, self.ar_lb, self.a_i, 110, self.h_l, self.day_out)
+        self.EEC_diet_BP = self.EEC_diet(self.C_0_blp, self.C_t_blp, self.noa, self.ar_lb, self.a_i, 135, self.h_l, self.day_out)
+        self.EEC_diet_FR = self.EEC_diet(self.C_0_fp, self.C_t_f_p, self.noa, self.ar_lb, self.a_i, 15, self.h_l, self.day_out)
+        self.EEC_diet_AR = self.EEC_diet(self.C_0_arthro, self.C_t_arhtro, self.noa, self.ar_lb, self.a_i, 94, self.h_l, self.day_out)
 
         #Table 7
         logging.info("table 7")
@@ -732,15 +748,35 @@ class trex2(object):
         return (NOAEL_mamm) * ((tw_mamm/aw_mamm)**(0.25))
 
     #Dietary based EECs
-    #Initial concentration
+    #Initial concentration from new application
     @timefn
-    def C_0(self, a_r, a_i, para):       
-        return (a_r*a_i*para)
+    def C_initial(self, a_r, a_i, food_multipler):
+        C_new = (a_r * a_i * food_multiplier)
+        return C_new
 
     #Concentration over time
     @timefn
     def C_t(self, C_ini, h_l):         
         return (C_ini*np.exp(-(np.log(2)/h_l)*1))
+
+    #Concentration time series for a selected food item
+    @timefn
+    def C_timeseries(self, noa, food_multiplier):
+        C_temp = np.zeroes((371,1)) #empty array to hold the concentrations over days
+        noa_temp = 0  #number of applications applied so far
+        dayt = 0  #start day counter
+        day_out_l = len(self.day_out)  #total number of applications
+        for i in range (0,371):
+            dayt = dayt + 1  #increment day
+            if dayt <= (day_out_l - 1) and noa_temp <= self.noa: # check for next application day
+                if i == day_out[dayt]:  #application day
+                    existing_conc = C_t(C_temp[i-1], self.h_l)  #decay yesterdays concentration
+                    add_conc = C_initial(self.rate_out[dayt], self.a_i, food_multiplier)  #new application
+                    C_temp[i] = existing_conc + add_conc
+                    noa_temp = noa_temp + 1  #increment number of applications so far
+                else:
+                    C_temp[i] = C_t(C_temp[i-1], self.h_l)  #decay yesterdays concentration if no application
+        return (C_temp)
         
     # concentration over time if application rate or time interval is variable
     #returns max daily concentration, can be multiple applications
