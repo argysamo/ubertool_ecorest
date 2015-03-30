@@ -791,20 +791,33 @@ class trex2(object):
     #Concentration time series for a selected food item
     @timefn
     def C_timeseries(self, food_multiplier):
-        C_temp = np.zeroes((371,1)) #empty array to hold the concentrations over days
-        noa_temp = 0  #number of applications applied so far
-        dayt = 0  #start day counter
-        day_out_l = len(self.day_out)  #total number of applications
+        """
+
+        :type self: object
+        """
+        C_temp = np.zeros((371,1)) #empty array to hold the concentrations over days
+        existing_conc = 0 #start concentration
+        checker1 = False
+        checker2 = False
+        appcounter = 0  #start application counter and track
+        #app_day tracks day number of the next application
+        app_total = len(self.day_out)  #total number of applications
+
         for i in range (0,371):
-            dayt = dayt + 1  #increment day
-            if dayt <= (day_out_l - 1) and noa_temp <= self.noa: # check for next application day
-                if i == day_out[dayt]:  #application day
-                    existing_conc = C_t(C_temp[i-1], self.h_l)  #decay yesterdays concentration
-                    add_conc = C_initial(self.rate_out[dayt], self.a_i, food_multiplier)  #new application
-                    C_temp[i] = existing_conc + add_conc
+            # i is day number in the year
+            checker1 = bool(noa_temp <= int(self.noa[0]))  #is there another application still to come?
+            if checker1: # check for next application day
+                app_day = int(self.day_out[noa_temp]) # day number of the next application
+                if i == app_day & i > 1:  #application day
+                    if i > 1:
+                        existing_conc = C_t(C_temp[i-1], self.h_l)  #decay yesterdays concentration
+                    add_conc = C_initial(self.rate_out[dayt], self.a_i, food_multiplier)  #new application conc
+                    C_temp[i] = existing_conc + add_conc #calculate today's total concentration
                     noa_temp = noa_temp + 1  #increment number of applications so far
-                else:
+                elif i > 1:
                     C_temp[i] = C_t(C_temp[i-1], self.h_l)  #decay yesterdays concentration if no application
+                else:
+                    C_temp[i] = 0 #handle first day if no application (typical)
         return (C_temp)
         
     # concentration over time if application rate or time interval is variable
