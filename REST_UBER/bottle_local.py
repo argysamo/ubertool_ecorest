@@ -51,9 +51,13 @@ class NumPyArangeEncoder(json.JSONEncoder):
             return obj.tolist() # or map(int, obj)
         return json.JSONEncoder.default(self, obj)
 
-import pymongo
-client = pymongo.MongoClient('localhost', 27017)
-db = client.ubertool
+try:
+    import pymongo
+    client = pymongo.MongoClient('localhost', 27017)
+    db = client.ubertool
+except Exception:
+    logging.exception(Exception)
+
 
 def check(user, passwd):
     if user == keys_Picloud_S3.picloud_api_key and passwd == keys_Picloud_S3.picloud_api_secretkey:
@@ -77,7 +81,7 @@ def enable_cors(fn):
     return _enable_cors
 
 def errorMessage(error, jid):
-    """Returns exeption error message as valid JSON string to caller"""
+    """Returns exception error message as valid JSON string to caller"""
     logging.exception(error)
     e = str(error)
     return {'user_id':'admin', 'result': {'error': e}, '_id':jid}
@@ -95,7 +99,6 @@ def model_caller(model, jid):
         model_object = getattr(model_module, model)
         
         logging.info(json.dumps(request.json))
-        logging.info(type(request.json))
 
         try:
             run_type = request.json["run_type"]
@@ -105,20 +108,23 @@ def model_caller(model, jid):
         if run_type == "qaqc":
             logging.info('============= QAQC Run =============')
 
-            pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
-            pd_obj_exp = pd.io.json.read_json(json.dumps(request.json["out_exp"]))
+            # pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
+            pd_obj = pd.DataFrame.from_dict(request.json["inputs"], dtype='float64')
+            # pd_obj_exp = pd.io.json.read_json(json.dumps(request.json["out_exp"]))
+            pd_obj_exp = pd.DataFrame.from_dict(request.json["out_exp"], dtype='float64')
 
             result_json_tuple = model_object(run_type, pd_obj, pd_obj_exp).json
 
         elif run_type == "batch":
             logging.info('============= Batch Run =============')
-            pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
+            # pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
+            pd_obj = pd.DataFrame.from_dict(request.json["inputs"], dtype='float64')
 
             result_json_tuple = model_object(run_type, pd_obj, None).json
 
         else:
             logging.info('============= Single Run =============')
-            pd_obj = pd.io.json.read_json(json.dumps(request.json["inputs"]))
+            pd_obj = pd.DataFrame.from_dict(request.json["inputs"], dtype='float64')
 
             result_json_tuple = model_object(run_type, pd_obj, None).json
 
@@ -127,10 +133,28 @@ def model_caller(model, jid):
         outputs_json = json.loads(result_json_tuple[1])
         exp_out_json = json.loads(result_json_tuple[2])
 
-        return {'user_id':'admin', 'inputs': inputs_json, 'outputs': outputs_json, 'exp_out': exp_out_json, '_id':jid, 'run_type': run_type}
+        model_obj_dict = {'user_id':'admin', 'inputs': inputs_json, 'outputs': outputs_json, 'exp_out': exp_out_json, '_id':jid, 'run_type': run_type}
+
+        if model != 'sam':
+            try:
+                save_to_mongo(model, {'user_id':'admin', 'inputs': json.dumps(inputs_json), 'outputs': json.dumps(outputs_json), 'exp_out': exp_out_json, '_id':jid, 'run_type': run_type})
+            except:
+                pass
+
+        return model_obj_dict
 
     except Exception, e:
         return errorMessage(e, jid)
+
+
+def save_to_mongo(model, model_obj_dict):
+
+    logging.info("save_to_mongo() called")
+
+    logging.info(model_obj_dict)
+
+    db[model].save(model_obj_dict)
+    logging.info("Saved to mongo!")
 
 ##################################terrplant#############################################
 @route('/terrplant/<jid>', method='POST') 
@@ -655,18 +679,51 @@ def przm_exams_rest(jid):
 ################################## SAM ##############################################
 @route('/sam/<jid>', method='POST')
 def sam_rest(jid):
-    try:
-        for k, v in request.json.iteritems():
-            exec '%s = v' % k
-            print k
-        all_result.setdefault(jid,{}).setdefault('status','none')
+    # try:
+    #     for k, v in request.json.iteritems():
+    #         exec '%s = v' % k
+    #         print k
+    #     all_result.setdefault(jid,{}).setdefault('status','none')
 
-        # Commented out for Local Run
-        #from sam_rest import sam_rest_win
-        #result = sam_rest_win.sam()
-        #return {'user_id':'admin', 'result': result, '_id':jid}
-        # Local faking of results
-        return {'user_id':'admin', 'result': ["https://s3.amazonaws.com/super_przm/SAM_IB2QZS.zip"], '_id':jid}
+    #     # Commented out for Local Run
+    #     #from sam_rest import sam_rest_win
+    #     #result = sam_rest_win.sam()
+    #     #return {'user_id':'admin', 'result': result, '_id':jid}
+    #     # Local faking of results
+    #     return {'user_id':'admin', 'result': ["https://s3.amazonaws.com/super_przm/SAM_IB2QZS.zip"], '_id':jid}
+    # except Exception, e:
+    #     return errorMessage(e, jid)
+    try:
+        import sam_rest.sam_rest_model as sam
+
+        try:
+            run_type = request.json["run_type"]
+        except KeyError, e:
+            return errorMessage(e, jid)
+
+        if run_type == "qaqc":
+            logging.info('============= QAQC Run =============')
+
+
+        elif run_type == "batch":
+            logging.info('============= Batch Run =============')
+
+
+        else:
+            logging.info('============= Single Run =============')
+            inputs_json = json.dumps(request.json["inputs"])
+
+            logging.info(inputs_json)
+
+            result_json_tuple = sam.sam(inputs_json, jid, run_type)
+
+        # Values returned from model run: inputs, outputs, and expected outputs (if QAQC run)
+        # inputs_json = json.loads(result_json_tuple[0])
+        outputs_json = result_json_tuple
+        exp_out_json = ""
+
+        return {'user_id':'admin', 'inputs': inputs_json, 'outputs': outputs_json, 'exp_out': exp_out_json, '_id':jid, 'run_type': run_type}
+
     except Exception, e:
         return errorMessage(e, jid)
 
@@ -706,7 +763,7 @@ def file_upload():
 """
 
 ##########insert results into mongodb#########################
-@route('/save_history_html', method='POST') 
+@route('/save_history_html', method='POST')
 @auth_basic(check)
 def insert_output_html():
     """
@@ -716,13 +773,18 @@ def insert_output_html():
 
     for k, v in request.json.iteritems():
         exec "%s = v" % k
-    element={"user_id":"admin", "_id":_id, "run_type":run_type, "output_html": output_html, "model_object_dict":model_object_dict}
+    element = { "user_id": "admin",
+                "_id": _id,
+                "run_type": run_type,
+                "output_html": output_html,
+                "model_object_dict": model_object_dict
+                }
     db[model_name].save(element)
     logging.info("Save history, _id = "+_id)
     print _id
 
 
-@route('/save_history', method='POST') 
+@route('/save_history', method='POST')
 @auth_basic(check)
 def insert_model_obj():
     """
@@ -730,7 +792,11 @@ def insert_model_obj():
     """
     for k, v in request.json.iteritems():
         exec "%s = v" % k
-    element={"user_id":"admin", "_id":_id, "run_type":run_type, "model_object_dict":model_object_dict}
+    element = { "user_id": "admin",
+                "_id": _id,
+                "run_type": run_type,
+                "model_object_dict": model_object_dict
+                }
     db[model_name].save(element)
     # logging.info("Save history test, _id = "+_id)
     
@@ -743,16 +809,58 @@ def get_model_object():
     """
     for k, v in request.json.iteritems():
         exec '%s = v' % k
-    # Cursor          Mongo collection     Document      Projection (fields to return)
-    model_object_c = db[model_name].find({"_id" :jid}, {"model_object_dict":1, "_id":0})
-    for i in model_object_c:
-        # print i
-        model_object = i['model_object_dict']
-    logging.info({"model_object":model_object})
-    return {"model_object":model_object}
+
+    try:
+
+        if model_name == 'sam':  # SAM changed "_id" to "jid" Mongo key
+            model_object_c = db[model_name].find(
+                { "jid": jid },
+                { "_id": 0, "model_object_dict": 1 }
+            )
+        else:
+            # Cursor          Mongo collection     Document      Projection (fields to return)
+            model_object_c = db[model_name].find(
+                { "_id": jid },
+                { "model_object_dict": 1, "_id": 0 }
+            )
+        for i in model_object_c:
+            # print i
+            model_object = i['model_object_dict']
+        # logging.info({"model_object": model_object})
+        return {"model_object": model_object}
+
+    except Exception, e:
+        return { "model_object": None, "error": str(e) }
 
 
-@route('/update_html', method='POST') 
+@route('/get_sam_huc_output', method='POST')
+@auth_basic(check)
+def get_model_object():
+    """
+        Return model object from MongoDB to be loaded into view (e.g. Django)
+    """
+    for k, v in request.json.iteritems():
+        exec '%s = v' % k
+
+    try:
+        # Cursor          Mongo collection
+        cursor = db.sam.aggregate([
+            { '$match': { "jid": jid } },             # Filter document by "jid" / Mongo "_id"
+            { '$project' : { "_id": 0, "model_object_dict.output": { huc12: 1 } } }  # Return only desired HUC
+        ])
+        # print cursor
+        # print type(cursor)
+        # for i in cursor['result']:
+        #     print i
+        #     huc12_output = i[huc12]
+        logging.info({ "huc12_output": cursor['result'] })
+        return { "huc12_output": cursor['result'] }
+
+    except Exception, e:
+        return { "huc12_output": None, "error": str(e) }
+
+
+@route('/update_html', method='POST')
 @auth_basic(check)
 def update_output_html():
     """
@@ -763,14 +871,14 @@ def update_output_html():
     for k, v in request.json.iteritems():
         exec "%s = v" % k
     # print request.json
-    db[model_name].update({"_id" :_id}, {'$set': {"output_html": output_html}})
+    db[model_name].update( { "_id" : _id }, { '$set': { "output_html": output_html } } )
 
 
 ###############Check History####################
 @route('/ubertool_history/<model_name>/<jid>')
 @auth_basic(check)
 def get_document(model_name, jid):
-    entity = db[model_name].find_one({'_id':jid})
+    entity = db[model_name].find_one( { '_id': jid } )
     # print entity
     if not entity:
         abort(404, 'No document with jid %s' % jid)
@@ -786,12 +894,27 @@ def get_user_model_hist():
     for k, v in request.json.iteritems():
         exec '%s = v' % k
     hist_all = []
-    entity = db[model_name].find({'user_id':user_id}).sort("_id", -1)
-    for i in entity:
-        hist_all.append(i)
-    if not entity:
-        abort(404, 'No document with jid %s' % jid)
-    return {"hist_all":hist_all}
+
+    if model_name == 'sam':  # SAM changed "_id" to "jid" Mongo key
+
+        entity = db[model_name].find( { 'user_id': user_id } ).sort("jid", -1)
+
+        for i in entity:
+            i.pop('_id', None)  # Remove '_id' key, which is a Mongo ObjectId, bc it cannot be serialized
+            hist_all.append(i)
+        if not entity:
+            abort(404, 'No document with jid %s' % jid)
+
+        return { "hist_all": hist_all }
+
+    else:
+        entity = db[model_name].find( { 'user_id': user_id } ).sort("_id", -1)
+        for i in entity:
+            hist_all.append(i)
+        if not entity:
+            abort(404, 'No document with jid %s' % jid)
+
+        return { "hist_all": hist_all }
 
 @route('/get_html_output', method='POST')
 @auth_basic(check)
@@ -803,22 +926,22 @@ def get_html_output():
 
     for k, v in request.json.iteritems():
         exec '%s = v' % k
-    html_output_c = db[model_name].find({"_id" :jid}, {"output_html":1, "_id":0})
+    html_output_c = db[model_name].find( { "_id" :jid }, { "output_html":1, "_id":0 } )
     for i in html_output_c:
         # print i
         html_output = i['output_html']
-    return {"html_output":html_output}
+    return { "html_output":html_output }
 
 @route('/get_przm_batch_output', method='POST')
 @auth_basic(check)
 def get_przm_batch_output():
     for k, v in request.json.iteritems():
         exec '%s = v' % k
-    result_output_c = db[model_name].find({"_id" :jid}, {"model_object_dict":1, "_id":0})
+    result_output_c = db[model_name].find( { "_id" :jid }, { "model_object_dict":1, "_id":0 } )
     for i in result_output_c:
         # print i
         result = i['model_object_dict']
-    return {"result":result}
+    return { "result":result }
 
 @route('/get_pdf', method='POST')
 @auth_basic(check)
@@ -834,7 +957,7 @@ def get_pdf():
 
     from generate_doc import generatepdf_pi
     result=generatepdf_pi.generatepdf_pi(final_str)
-    return {"result":result}
+    return { "result":result }
 
 @route('/get_html', method='POST')
 @auth_basic(check)
@@ -850,9 +973,15 @@ def get_html():
 
     from generate_doc import generatehtml_pi
     result=generatehtml_pi.generatehtml_pi(final_str)
-    return {"result":result}
+    return { "result":result }
 
-# @route('/ore/<query>', method=['OPTIONS', 'POST'])
+
+"""
+=============================================================================================
+                              O R E  T E S T I N G
+=============================================================================================
+"""
+
 # @auth_basic(check)
 # @enable_cors
 @route('/ore/<query>', method='GET')
@@ -863,7 +992,7 @@ def ore_rest_query(query):
     # all_result.setdefault(jid,{}).setdefault('status','none')
 
     from ore_rest import ore_db
-    print query
+    # print query
     result = ore_db.loadChoices(query)
     print result
     # print type(result)
@@ -874,45 +1003,23 @@ def ore_rest_query(query):
     #     all_result[jid]['result']=result
 
     # return {'user_id':'admin', 'result': result.__dict__, '_id':jid}
-    return {"result": result}
+    return { "result":result }
 
+@route('/ore/category', method='GET')
+def ore_rest_query():
 
-@route('/test/', method='POST') 
-def test_rest():
+    category = request.json['category']
+    print category
+    from ore_rest import ore_db
+    result = ore_db.oreWorkerActivities(category)
 
-    # PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-    # csv = os.path.join(PROJECT_ROOT, 'test_rest', 'pandas_test.csv')
+    # exposure_scenario = []
+    # for item in result:
+    #     exposure_scenario.append(item[0])
 
-    import pandas as pd
+    print result
 
-    # pd_obj = pd.read_csv(csv, header=None, index_col=0)
-
-    try:
-        # for k, v in request.json.iteritems():
-        #     exec '%s = v' % k
-
-        print request.json
-        print type(json.dumps(request.json))
-
-        pd_obj = pd.io.json.read_json(json.dumps(request.json), orient='index')
-
-        from test_rest import test_model_rest
-        result = test_model_rest.test(pd_obj)
-
-        print "================================="
-        print result.pd_obj
-        print "================================="
-
-        pd_obj_json = result.pd_obj.to_json(orient='index')
-
-        print "================================="
-        print pd_obj_json
-        print "================================="
-
-        # return {'result': result.__dict__}
-        return {'result': pd_obj_json}
-    except Exception, e:
-        return errorMessage(e, 'TEST_RUN')
+    return { "result":result }
 
 
 
