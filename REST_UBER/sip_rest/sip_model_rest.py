@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import numpy as np
 import pandas as pd
 import logging
@@ -90,7 +91,6 @@ class sip(object):
             'chron_mamm_out' : self.chron_mamm_out,
             'chronconm_out' : self.chronconm_out
         })
-
 
         # Callable from Bottle that returns JSON
         self.json = self.json(pd_obj, pd_obj_out, pd_obj_exp)
