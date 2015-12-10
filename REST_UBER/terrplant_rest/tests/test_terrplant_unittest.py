@@ -7,7 +7,6 @@ import pandas.util.testing as pdt
 # python -m tests.test_terrplant_unittest
 # the following works for running as nosetests from parent directory:
 from .. import terrplant_model_rest as terrplant_model
-
 # load transposed qaqc data for inputs and expected outputs
 # csv_transpose_path_in = "./terrplant_qaqc_in_transpose.csv"
 # pd_obj_inputs = pd.read_csv(csv_transpose_path_in, index_col=0, engine='python')
@@ -18,7 +17,7 @@ from .. import terrplant_model_rest as terrplant_model
 
 # create empty pandas dataframes to create empty terrplant object
 df_empty = pd.DataFrame()
-terrplant_empty = terrplant_model.terrplant("empty", df_empty, df_empty)
+terrplant_empty = terrplant_model.Terrplant(df_empty, None)
 
 test = {}
 

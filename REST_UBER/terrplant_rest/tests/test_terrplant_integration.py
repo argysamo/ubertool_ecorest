@@ -40,7 +40,7 @@ print(tabulate(pd_obj_exp.iloc[:,11:14], headers='keys', tablefmt='fancy_grid'))
 print(tabulate(pd_obj_exp.iloc[:,15:16], headers='keys', tablefmt='fancy_grid'))
 
 # create an instance of terrplant object with qaqc data
-terrplant_calc = terrplant_model.terrplant("batch", pd_obj_inputs, pd_obj_exp)
+terrplant_calc = terrplant_model.Terrplant(pd_obj_inputs, pd_obj_exp)
 print("####")
 print(terrplant_calc)
 test = {}
@@ -48,7 +48,7 @@ test = {}
 
 class TestTerrplant(unittest.TestCase):
     def setUp(self):
-        pass
+        terrplant_calc.execute_model()
 
     def tearDown(self):
         pass
@@ -360,15 +360,12 @@ class TestTerrplant(unittest.TestCase):
         :param output: String; Pandas Series name (e.g. column name) without '_out'
         :return:
         """
-        pd.set_option('display.float_format','{:.4E}'.format) # display model output in scientific notation
         result = terrplant_calc.pd_obj_out["out_" + output]
         expected = terrplant_calc.pd_obj_exp["exp_" + output]
         tab = pd.concat([result,expected], axis=1)
         print(" ")
         print(tabulate(tab, headers='keys', tablefmt='fancy_grid'))
-        # npt.assert_array_almost_equal(result, expected, 4, '', True)
-        rtol = 1e-5
-        npt.assert_allclose(result, expected, rtol, 0, '', True)
+        npt.assert_array_almost_equal(result, expected, 4, '', True)
 
     def blackbox_method_str(self, output):
         result = terrplant_calc.pd_obj_out["out_" + output]
