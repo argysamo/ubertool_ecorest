@@ -9,6 +9,7 @@ import pandas as pd
 import ubertool.ubertool.terrplant as terrplant
 
 app = Flask(__name__)
+application = app  # WSGI entry point
 api = Api(app)
 
 
